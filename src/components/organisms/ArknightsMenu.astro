@@ -1,0 +1,759 @@
+---
+/**
+ * Arknights 风格主菜单卡片组
+ * 仿游戏主界面：TERMINAL / SQUADS / OPERATOR / RECRUITMENT / HEADHUNT / MISSION / BASE / DEPOT / FRIENDS
+ */
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { url } from "@utils/url-utils";
+import { animeConfig } from "@/config/animeConfig";
+
+interface Props {
+	postCount?: number;
+	tagCount?: number;
+	categoryCount?: number;
+	momentCount?: number;
+}
+
+const {
+	postCount = 0,
+	tagCount = 0,
+	categoryCount = 0,
+	momentCount = 0,
+} = Astro.props;
+
+const pad = (n: number) => String(n).padStart(2, "0");
+---
+
+<nav id="ak-menu" aria-label="主菜单">
+	{/* 第一排：终端 + 播报 */}
+	<div class="ak-row ak-row--hero">
+		<a class="ak-card ak-terminal" href={url("/archive/")}>
+			<span class="ak-terminal__main">
+				<span class="ak-terminal__title">
+					<span class="ak-terminal__en">TERMINAL</span>
+					<span class="ak-terminal__cn">终端</span>
+				</span>
+				<span class="ak-terminal__status">
+					<span class="ak-status__label">当前</span>
+					<span class="ak-status__value">全部完成</span>
+					<span class="ak-status__bar"></span>
+				</span>
+			</span>
+			<span class="ak-terminal__ring">
+				<svg viewBox="0 0 100 100" aria-hidden="true">
+					<circle class="ring-track" cx="50" cy="50" r="42"></circle>
+					<circle class="ring-fill" cx="50" cy="50" r="42" style={`stroke-dashoffset: ${264 - (264 * Math.min(postCount, 9)) / 9}`}></circle>
+					<circle class="ring-dash" cx="50" cy="50" r="46"></circle>
+				</svg>
+				<span class="ak-ring-num">{pad(postCount)}</span>
+				<span class="ak-ring-label">文章 / POSTS</span>
+			</span>
+		</a>
+
+		<a class="ak-card ak-broadcast" href={url("/moments/")}>
+			<span class="ak-broadcast__head">
+				<span class="ak-live">LIVE</span>
+				<span class="ak-broadcast__title">动态频道</span>
+			</span>
+			<span class="ak-broadcast__sub">MOMENTS CHANNEL</span>
+			<span class="ak-broadcast__big">
+				<span class="ak-broadcast__letters">M</span>
+				<span class="ak-broadcast__text">{pad(momentCount)} 条动态</span>
+			</span>
+		</a>
+	</div>
+
+	{/* 第二排：两个宽卡 */}
+	<div class="ak-row ak-row--two">
+		<a class="ak-card ak-wide" href={url("/archive/")}>
+			<span class="ak-emblem ak-emblem--green">
+				<i class="ak-icon" data-icon="archive"></i>
+			</span>
+			<span class="ak-wide__body">
+				<span class="ak-wide__en">SQUADS</span>
+				<span class="ak-wide__cn">归档</span>
+				<span class="ak-wide__sub">{postCount} 篇文章</span>
+			</span>
+			<span class="ak-chevron"></span>
+		</a>
+
+		<a class="ak-card ak-wide" href={url("/about/")}>
+			<span class="ak-emblem ak-emblem--blue">
+				<i class="ak-icon" data-icon="operator"></i>
+			</span>
+			<span class="ak-wide__body">
+				<span class="ak-wide__en">OPERATOR</span>
+				<span class="ak-wide__cn">关于</span>
+				<span class="ak-wide__sub">OPERATOR FILE</span>
+			</span>
+			<span class="ak-chevron"></span>
+		</a>
+	</div>
+
+	{/* 第三排：招募（绿）+ 寻访 */}
+	<div class="ak-row ak-row--recruit">
+		<a class="ak-card ak-recruit" href="https://github.com/BaiOrchid" target="_blank" rel="noopener noreferrer">
+			<span class="ak-recruit__tape">RECRUITMENT</span>
+			<span class="ak-emblem ak-emblem--green ak-emblem--strong">
+				<i class="ak-icon" data-icon="github"></i>
+			</span>
+			<span class="ak-wide__body">
+				<span class="ak-wide__en">公开招募</span>
+				<span class="ak-wide__cn">RECRUIT</span>
+				<span class="ak-wide__sub">GitHub</span>
+			</span>
+		</a>
+
+		<a class="ak-card ak-soft" href={url("/friends/")}>
+			<span class="ak-emblem">
+				<i class="ak-icon" data-icon="headhunt"></i>
+			</span>
+			<span class="ak-wide__body">
+				<span class="ak-wide__en">干员寻访</span>
+				<span class="ak-wide__cn">HEADHUNT</span>
+				<span class="ak-wide__sub">友链</span>
+			</span>
+		</a>
+	</div>
+
+	{/* 第四排：四张小卡 */}
+	<div class="ak-row ak-row--small">
+		<a class="ak-card ak-small" href={url("/anime/")}>
+			<span class="ak-emblem ak-emblem--sm">
+				<i class="ak-icon" data-icon="mission"></i>
+			</span>
+			<span class="ak-small__body">
+				<span class="ak-small__en">MISSION</span>
+				<span class="ak-small__cn">追番</span>
+			</span>
+			{animeConfig.enable && <span class="ak-badge ak-badge--orange">ON</span>}
+		</a>
+
+		<a class="ak-card ak-small" href={url("/tags/")}>
+			<span class="ak-emblem ak-emblem--sm">
+				<i class="ak-icon" data-icon="base"></i>
+			</span>
+			<span class="ak-small__body">
+				<span class="ak-small__en">BASE</span>
+				<span class="ak-small__cn">标签</span>
+			</span>
+			<span class="ak-badge ak-badge--blue">{tagCount}</span>
+		</a>
+
+		<a class="ak-card ak-small" href={url("/categories/")}>
+			<span class="ak-emblem ak-emblem--sm">
+				<i class="ak-icon" data-icon="depot"></i>
+			</span>
+			<span class="ak-small__body">
+				<span class="ak-small__en">DEPOT</span>
+				<span class="ak-small__cn">分类</span>
+			</span>
+			<span class="ak-badge ak-badge--yellow">{categoryCount}</span>
+		</a>
+
+		<a class="ak-card ak-small" href="https://github.com/BaiOrchid" target="_blank" rel="noopener noreferrer">
+			<span class="ak-emblem ak-emblem--sm">
+				<i class="ak-icon" data-icon="friends"></i>
+			</span>
+			<span class="ak-small__body">
+				<span class="ak-small__en">FRIENDS</span>
+				<span class="ak-small__cn">联络</span>
+			</span>
+		</a>
+	</div>
+</nav>
+
+<style>
+	#ak-menu {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		margin: 0 0 1.5rem;
+	}
+
+	.ak-row {
+		display: grid;
+		gap: 0.625rem;
+	}
+
+	.ak-row--hero,
+	.ak-row--two {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.ak-row--recruit {
+		grid-template-columns: 1.15fr 1fr;
+	}
+
+	.ak-row--small {
+		grid-template-columns: repeat(4, 1fr);
+	}
+
+	/* 卡片基础 */
+	.ak-card {
+		position: relative;
+		display: flex;
+		align-items: stretch;
+		min-width: 0;
+		color: #d5dbe1;
+		background: rgba(20, 25, 30, 0.82);
+		box-shadow:
+			inset 0 0 0 1px rgba(255, 255, 255, 0.09),
+			0 10px 26px rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(3px);
+		clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+		transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+	}
+
+	@media (min-width: 769px) {
+		.ak-card:hover {
+			background: rgba(30, 38, 46, 0.92);
+			box-shadow:
+				inset 0 0 0 1px rgba(43, 179, 255, 0.5),
+				0 14px 30px rgba(0, 0, 0, 0.55);
+			transform: translateY(-2px);
+		}
+	}
+
+	/* 徽记 */
+	.ak-emblem {
+		position: relative;
+		flex: 0 0 58px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 10px 0 10px 10px;
+		color: rgba(255, 255, 255, 0.85);
+		background: rgba(255, 255, 255, 0.06);
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+		clip-path: polygon(0 0, 100% 0, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+	}
+
+	.ak-emblem--green {
+		color: #8fe36a;
+		background: rgba(143, 227, 106, 0.08);
+		box-shadow: inset 0 0 0 1px rgba(143, 227, 106, 0.4);
+	}
+
+	.ak-emblem--blue {
+		color: #2bb3ff;
+		background: rgba(43, 179, 255, 0.08);
+		box-shadow: inset 0 0 0 1px rgba(43, 179, 255, 0.4);
+	}
+
+	.ak-emblem--strong {
+		margin: 0 0 0 12px;
+		color: #0d1a05;
+		background: rgba(0, 0, 0, 0.14);
+		box-shadow: inset 0 0 0 1px rgba(13, 26, 5, 0.35);
+	}
+
+	.ak-emblem--sm {
+		flex: 0 0 44px;
+		font-size: 16px;
+	}
+
+	/* 图标：纯 CSS 几何图形，零依赖 */
+	.ak-icon {
+		position: relative;
+		display: block;
+		width: 26px;
+		height: 26px;
+	}
+
+	.ak-emblem--sm .ak-icon {
+		width: 18px;
+		height: 18px;
+	}
+
+	.ak-icon::before,
+	.ak-icon::after {
+		content: "";
+		position: absolute;
+		box-sizing: border-box;
+	}
+
+	/* 归档：叠层 */
+	.ak-icon[data-icon="archive"]::before {
+		inset: 2px 0 12px 0;
+		border: 2px solid currentColor;
+		background: rgba(143, 227, 106, 0.18);
+	}
+
+	.ak-icon[data-icon="archive"]::after {
+		inset: 13px 3px 0 3px;
+		border: 2px solid currentColor;
+		opacity: 0.75;
+	}
+
+	/* 干员：六边形 */
+	.ak-icon[data-icon="operator"]::before {
+		inset: 0;
+		background: currentColor;
+		clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+		opacity: 0.9;
+	}
+
+	.ak-icon[data-icon="operator"]::after {
+		inset: 7px;
+		background: #0f1418;
+		clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+	}
+
+	/* GitHub：代用圆形 + 菱形 */
+	.ak-icon[data-icon="github"]::before {
+		inset: 1px;
+		border-radius: 50%;
+		background: currentColor;
+		opacity: 0.9;
+	}
+
+	.ak-icon[data-icon="github"]::after {
+		inset: 9px;
+		background: rgba(0, 0, 0, 0.6);
+		transform: rotate(45deg);
+	}
+
+	/* 寻访：菱形靶 */
+	.ak-icon[data-icon="headhunt"]::before {
+		inset: 1px;
+		border: 2px solid currentColor;
+		border-radius: 50%;
+	}
+
+	.ak-icon[data-icon="headhunt"]::after {
+		inset: 8px;
+		background: currentColor;
+		transform: rotate(45deg);
+	}
+
+	/* 任务：三角 */
+	.ak-icon[data-icon="mission"]::before {
+		inset: 0;
+		background: currentColor;
+		clip-path: polygon(50% 4%, 100% 100%, 0 100%);
+		opacity: 0.9;
+	}
+
+	.ak-icon[data-icon="mission"]::after {
+		inset: 8px 6px 4px 6px;
+		background: #0f1418;
+		clip-path: polygon(50% 4%, 100% 100%, 0 100%);
+	}
+
+	/* 基地：方块网格 */
+	.ak-icon[data-icon="base"]::before {
+		inset: 0;
+		background:
+			linear-gradient(currentColor 0 0) 0 0 / 45% 45% no-repeat,
+			linear-gradient(currentColor 0 0) 100% 0 / 45% 45% no-repeat,
+			linear-gradient(currentColor 0 0) 0 100% / 45% 45% no-repeat,
+			linear-gradient(currentColor 0 0) 100% 100% / 45% 45% no-repeat;
+		opacity: 0.9;
+	}
+
+	/* 仓库：横条堆叠 */
+	.ak-icon[data-icon="depot"]::before {
+		inset: 0;
+		background: repeating-linear-gradient(
+			180deg,
+			currentColor 0 4px,
+			transparent 4px 8px
+		);
+		opacity: 0.9;
+	}
+
+	/* 好友：双圆 */
+	.ak-icon[data-icon="friends"]::before {
+		inset: 3px 11px 3px 0;
+		border: 2px solid currentColor;
+		border-radius: 50%;
+	}
+
+	.ak-icon[data-icon="friends"]::after {
+		inset: 9px 0 9px 11px;
+		border: 2px solid currentColor;
+		border-radius: 50%;
+	}
+
+	/* 文字体 */
+	.ak-wide__body {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		justify-content: center;
+		min-width: 0;
+		padding: 0.75rem 0.9rem;
+	}
+
+	.ak-wide__en {
+		font-family: var(--ak-mono, monospace);
+		font-size: 1.15rem;
+		line-height: 1.05;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: #f2f6f9;
+	}
+
+	.ak-wide__cn {
+		margin-top: 0.3rem;
+		font-size: 0.62rem;
+		letter-spacing: 0.3em;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.ak-wide__sub {
+		margin-top: 0.3rem;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.55rem;
+		letter-spacing: 0.2em;
+		color: rgba(255, 255, 255, 0.3);
+	}
+
+	.ak-chevron {
+		position: absolute;
+		right: 16px;
+		top: 50%;
+		width: 7px;
+		height: 7px;
+		border-top: 1px solid rgba(255, 255, 255, 0.35);
+		border-right: 1px solid rgba(255, 255, 255, 0.35);
+		transform: translateY(-50%) rotate(45deg);
+	}
+
+	/* 卡片尺寸 */
+	.ak-terminal,
+	.ak-broadcast {
+		min-height: 122px;
+	}
+
+	.ak-wide {
+		min-height: 86px;
+	}
+
+	.ak-recruit,
+	.ak-soft {
+		min-height: 80px;
+	}
+
+	.ak-small {
+		min-height: 68px;
+	}
+
+	/* 终端卡 */
+	.ak-terminal {
+		align-items: center;
+		padding-right: 1rem;
+	}
+
+	.ak-terminal__main {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		justify-content: space-between;
+		align-self: stretch;
+		padding: 1rem 0.6rem 1rem 1.1rem;
+	}
+
+	.ak-terminal__title {
+		display: flex;
+		align-items: baseline;
+		gap: 0.6rem;
+	}
+
+	.ak-terminal__en {
+		font-family: var(--ak-mono, monospace);
+		font-size: 1.45rem;
+		letter-spacing: 0.05em;
+		color: #fff;
+	}
+
+	.ak-terminal__cn {
+		font-size: 0.62rem;
+		letter-spacing: 0.3em;
+		color: rgba(255, 255, 255, 0.45);
+	}
+
+	.ak-terminal__status {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.6rem;
+	}
+
+	.ak-status__label {
+		padding: 0.05rem 0.4rem;
+		font-size: 0.6rem;
+		color: rgba(255, 255, 255, 0.75);
+		background: rgba(255, 255, 255, 0.1);
+	}
+
+	.ak-status__value {
+		font-size: 0.66rem;
+		letter-spacing: 0.2em;
+		color: #8fe36a;
+	}
+
+	.ak-status__bar {
+		flex: 1;
+		height: 3px;
+		background: repeating-linear-gradient(
+			135deg,
+			rgba(143, 227, 106, 0.55) 0 5px,
+			transparent 5px 11px
+		);
+	}
+
+	/* 理智环 */
+	.ak-terminal__ring {
+		position: relative;
+		flex: 0 0 86px;
+		height: 86px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.ak-terminal__ring svg {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		transform: rotate(-90deg);
+	}
+
+	.ring-track {
+		fill: none;
+		stroke: rgba(255, 255, 255, 0.12);
+		stroke-width: 3;
+	}
+
+	.ring-fill {
+		fill: none;
+		stroke: #fff;
+		stroke-width: 3;
+		stroke-linecap: round;
+		stroke-dasharray: 264 264;
+	}
+
+	.ring-dash {
+		fill: none;
+		stroke: rgba(43, 179, 255, 0.45);
+		stroke-width: 1;
+		stroke-dasharray: 2 6;
+	}
+
+	.ak-ring-num {
+		position: relative;
+		font-family: var(--ak-mono, monospace);
+		font-size: 1.5rem;
+		line-height: 1;
+		color: #fff;
+	}
+
+	.ak-ring-label {
+		position: relative;
+		margin-top: 0.2rem;
+		font-size: 0.45rem;
+		letter-spacing: 0.16em;
+		color: rgba(255, 255, 255, 0.4);
+	}
+
+	/* 播报卡（黄） */
+	.ak-broadcast {
+		flex-direction: column;
+		justify-content: space-between;
+		padding: 0.9rem 1.1rem;
+		background: linear-gradient(122deg, #f0d63f 0%, #dcb414 100%) !important;
+		color: #161200;
+		box-shadow:
+			inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+			0 12px 28px rgba(0, 0, 0, 0.5) !important;
+	}
+
+	.ak-broadcast:hover {
+		background: linear-gradient(122deg, #ffe562 0%, #e8c020 100%) !important;
+	}
+
+	.ak-broadcast__head {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.ak-live {
+		padding: 0.05rem 0.4rem;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.55rem;
+		color: #fff;
+		background: #e0392a;
+	}
+
+	.ak-broadcast__title {
+		font-size: 0.9rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		color: #1b1600;
+	}
+
+	.ak-broadcast__sub {
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.55rem;
+		letter-spacing: 0.24em;
+		color: rgba(27, 22, 0, 0.58);
+	}
+
+	.ak-broadcast__big {
+		display: flex;
+		align-items: flex-end;
+		gap: 0.5rem;
+	}
+
+	.ak-broadcast__letters {
+		font-family: var(--ak-mono, monospace);
+		font-size: 2.5rem;
+		line-height: 0.82;
+		letter-spacing: -0.04em;
+		color: rgba(27, 22, 0, 0.88);
+	}
+
+	.ak-broadcast__text {
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.72rem;
+		color: rgba(27, 22, 0, 0.72);
+	}
+
+	/* 招募卡（绿） */
+	.ak-recruit {
+		overflow: hidden;
+		background: linear-gradient(
+			100deg,
+			#7ac92e 0%,
+			#5ba31d 55%,
+			#2b3a1c 100%
+		) !important;
+	}
+
+	.ak-recruit:hover {
+		background: linear-gradient(
+			100deg,
+			#8ada33 0%,
+			#68b322 55%,
+			#32421f 100%
+		) !important;
+	}
+
+	.ak-recruit .ak-wide__en {
+		color: #0d1a05;
+	}
+
+	.ak-recruit .ak-wide__cn {
+		color: rgba(13, 26, 5, 0.78);
+	}
+
+	.ak-recruit .ak-wide__sub {
+		color: rgba(13, 26, 5, 0.5);
+	}
+
+	.ak-recruit__tape {
+		position: absolute;
+		top: 0;
+		right: 0;
+		padding: 0.1rem 0.6rem 0.15rem;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.5rem;
+		letter-spacing: 0.22em;
+		color: #0d1a05;
+		background:
+			repeating-linear-gradient(
+				135deg,
+				rgba(0, 0, 0, 0.18) 0 4px,
+				transparent 4px 9px
+			),
+			#cfe9a8;
+		clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
+	}
+
+	.ak-soft {
+		background: rgba(20, 25, 30, 0.66);
+	}
+
+	/* 小卡 */
+	.ak-small__body {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		justify-content: center;
+		min-width: 0;
+		padding: 0 0.75rem;
+	}
+
+	.ak-small__en {
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.92rem;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: #f2f6f9;
+	}
+
+	.ak-small__cn {
+		margin-top: 0.25rem;
+		font-size: 0.6rem;
+		letter-spacing: 0.22em;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	/* 角标 */
+	.ak-badge {
+		position: absolute;
+		right: 10px;
+		top: 8px;
+		min-width: 20px;
+		height: 20px;
+		padding: 0 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.66rem;
+		color: #fff;
+		background: linear-gradient(180deg, #ff6a3d, #e2401f);
+		box-shadow: 0 3px 10px rgba(226, 64, 31, 0.55);
+	}
+
+	.ak-badge--orange {
+		background: linear-gradient(180deg, #ff8a2b, #e25a12);
+		box-shadow: 0 3px 10px rgba(226, 90, 18, 0.55);
+	}
+
+	.ak-badge--blue {
+		background: linear-gradient(180deg, #37c4ff, #1189c4);
+		box-shadow: 0 3px 10px rgba(17, 137, 196, 0.55);
+	}
+
+	.ak-badge--yellow {
+		color: #1a1400;
+		background: linear-gradient(180deg, #ffd54a, #e0a800);
+		box-shadow: 0 3px 10px rgba(224, 168, 0, 0.5);
+	}
+
+	@media (max-width: 1023.98px) {
+		.ak-row--hero,
+		.ak-row--two,
+		.ak-row--recruit {
+			grid-template-columns: 1fr;
+		}
+
+		.ak-row--small {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.ak-row--small {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

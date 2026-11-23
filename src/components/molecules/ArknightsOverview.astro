@@ -1,0 +1,385 @@
+---
+/**
+ * 数据总览（方舟风格）：统计 + 系列 + 标签合并为一个卡片
+ * 三段式：顶部数据网格 / 中部系列列表 / 底部标签云
+ */
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { getSiteStats } from "@utils/site-stats";
+import { getCategoryUrl, getTagUrl, url } from "@utils/url-utils";
+import { getCollection } from "astro:content";
+import { seriesConfig } from "@/config";
+
+interface Props {
+	class?: string;
+	style?: string;
+}
+
+const className = Astro.props.class;
+const style = Astro.props.style;
+
+const stats = await getSiteStats();
+const fmt = (n: number) => n.toLocaleString("en-US");
+
+// 顶部四个数字
+const metrics = [
+	{ label: "文章", en: "POSTS", value: fmt(stats.posts) },
+	{ label: "分类", en: "CATS", value: fmt(stats.categories) },
+	{ label: "标签", en: "TAGS", value: fmt(stats.tags) },
+	{ label: "字数", en: "WORDS", value: stats.words ? `${(stats.words / 1000).toFixed(1)}k` : "—" },
+];
+
+// 系列
+let seriesList: { name: string; count: number; href: string }[] = [];
+if (seriesConfig.enable) {
+	try {
+		const posts = await getCollection("posts");
+		const map = new Map<string, number>();
+		for (const post of posts) {
+			const s = post.data.series;
+			const list = Array.isArray(s) ? s : s ? [s] : [];
+			for (const name of list) {
+				map.set(String(name), (map.get(String(name)) ?? 0) + 1);
+			}
+		}
+		seriesList = [...map.entries()]
+			.sort((a, b) => b[1] - a[1])
+			.slice(0, 4)
+			.map(([name, count]) => ({ name, count, href: `${url("/series/")}${encodeURIComponent(name)}/` }));
+	} catch {
+		seriesList = [];
+	}
+}
+
+// 分类
+let categoryList: { name: string; count: number }[] = [];
+try {
+	const posts = await getCollection("posts");
+	const map = new Map<string, number>();
+	for (const post of posts) {
+		const c = post.data.category;
+		if (c) map.set(String(c), (map.get(String(c)) ?? 0) + 1);
+	}
+	categoryList = [...map.entries()]
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, 6)
+		.map(([name, count]) => ({ name, count }));
+} catch {
+	categoryList = [];
+}
+
+// 标签（取前 12 个）
+let tagList: { name: string; count: number }[] = [];
+try {
+	const posts = await getCollection("posts");
+	const map = new Map<string, number>();
+	for (const post of posts) {
+		for (const tag of post.data.tags ?? []) {
+			const key = String(tag);
+			map.set(key, (map.get(key) ?? 0) + 1);
+		}
+	}
+	tagList = [...map.entries()]
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, 12)
+		.map(([name, count]) => ({ name, count }));
+} catch {
+	tagList = [];
+}
+---
+
+<div id="ak-overview" class:list={[className]} style={style}>
+	<header class="ak-overview__head">
+		<span class="ak-overview__title">数据总览</span>
+		<span class="ak-overview__en">DATABASE</span>
+	</header>
+
+	{/* 顶部指标 */}
+	<ul class="ak-overview__metrics">
+		{metrics.map((m) => (
+			<li>
+				<span class="ak-overview__metric-value">{m.value}</span>
+				<span class="ak-overview__metric-label">{m.label}</span>
+			</li>
+		))}
+	</ul>
+
+	{/* 分类 */}
+	{categoryList.length > 0 && (
+		<section class="ak-overview__section">
+			<h4 class="ak-overview__sub">
+				<span>分类</span>
+				<span class="ak-overview__sub-en">CATEGORIES</span>
+			</h4>
+			<div class="ak-overview__tags">
+				{categoryList.map((c) => (
+					<a
+						href={`${url("/categories/")}${encodeURIComponent(c.name)}/`}
+						class="ak-overview__tag ak-overview__tag--cat"
+					>
+						{c.name}
+						<span class="ak-overview__tag-count">{c.count}</span>
+					</a>
+				))}
+			</div>
+		</section>
+	)}
+
+	{/* 系列 */}
+	{seriesList.length > 0 && (
+		<section class="ak-overview__section">
+			<h4 class="ak-overview__sub">
+				<span>系列</span>
+				<span class="ak-overview__sub-en">SERIES</span>
+			</h4>
+			<ul class="ak-overview__list">
+				{seriesList.map((s) => (
+					<li>
+						<a href={s.href}>
+							<span class="ak-overview__name">{s.name}</span>
+							<span class="ak-overview__count">{s.count}</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		</section>
+	)}
+
+	{/* 标签云 */}
+	{tagList.length > 0 && (
+		<section class="ak-overview__section">
+			<h4 class="ak-overview__sub">
+				<span>标签</span>
+				<span class="ak-overview__sub-en">TAGS</span>
+			</h4>
+			<div class="ak-overview__tags">
+				{tagList.map((t) => (
+					<a href={`${url("/tags/")}${encodeURIComponent(t.name)}/`} class="ak-overview__tag">
+						{t.name}
+						<span class="ak-overview__tag-count">{t.count}</span>
+					</a>
+				))}
+			</div>
+		</section>
+	)}
+</div>
+
+<style>
+	/* ============================================================
+	   数据总览：大气版
+	   ============================================================ */
+	#ak-overview {
+		position: relative;
+	}
+
+	/* 顶部标题区：大字号 + 装饰线 */
+	.ak-overview__head {
+		position: relative;
+		display: flex;
+		align-items: baseline;
+		gap: 0.7rem;
+		margin-bottom: 1.4rem;
+		padding-bottom: 0.9rem;
+		border-bottom: 1px solid var(--ak-line);
+	}
+
+	/* 标题前的方块装饰 */
+	.ak-overview__head::before {
+		content: "";
+		position: absolute;
+		left: 0;
+		bottom: -1px;
+		width: 34px;
+		height: 2px;
+		background: var(--ak-accent);
+		box-shadow: 0 0 10px var(--ak-accent-glow);
+	}
+
+	.ak-overview__title {
+		font-size: 1.15rem;
+		font-weight: 700;
+		letter-spacing: 0.18em;
+		color: var(--on-surface);
+	}
+
+	.ak-overview__en {
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.66rem;
+		letter-spacing: 0.32em;
+		color: var(--on-surface-variant);
+		opacity: 0.85;
+	}
+
+	/* 指标：2×2 大数字块 */
+	.ak-overview__metrics {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.7rem;
+		margin: 0 0 1.6rem;
+		padding: 0;
+		list-style: none;
+	}
+
+	.ak-overview__metrics li {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		min-height: 5.2rem;
+		padding: 0.85rem 0.95rem;
+		overflow: hidden;
+		background: var(--surface-container);
+		box-shadow: inset 0 0 0 1px var(--ak-line);
+		clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+	}
+
+	/* 指标块右上角刻度 */
+	.ak-overview__metrics li::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		right: 10px;
+		width: 1px;
+		height: 0.9rem;
+		background: var(--ak-accent);
+		opacity: 0.5;
+	}
+
+	.ak-overview__metric-value {
+		font-family: var(--ak-mono, monospace);
+		font-size: 2.1rem;
+		font-weight: 700;
+		line-height: 0.95;
+		letter-spacing: 0.01em;
+		color: var(--on-surface);
+	}
+
+	.ak-overview__metric-label {
+		margin-top: 0.3rem;
+		font-size: 0.68rem;
+		letter-spacing: 0.26em;
+		color: var(--on-surface-variant);
+	}
+
+	/* 分区 */
+	.ak-overview__section + .ak-overview__section {
+		margin-top: 1.5rem;
+		padding-top: 1.2rem;
+		border-top: 1px dashed var(--ak-line);
+	}
+
+	.ak-overview__sub {
+		display: flex;
+		align-items: baseline;
+		gap: 0.55rem;
+		margin: 0 0 0.85rem;
+		font-size: 0.86rem;
+		font-weight: 700;
+		letter-spacing: 0.16em;
+		color: var(--on-surface);
+	}
+
+	/* 分区标题左侧竖条 */
+	.ak-overview__sub::before {
+		content: "";
+		width: 2px;
+		height: 0.85rem;
+		background: var(--ak-accent);
+		transform: translateY(1px);
+	}
+
+	.ak-overview__sub-en {
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.58rem;
+		font-weight: 400;
+		letter-spacing: 0.28em;
+		color: var(--on-surface-variant);
+		opacity: 0.75;
+	}
+
+	/* 系列列表：更宽松 */
+	.ak-overview__list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.ak-overview__list li + li {
+		border-top: 1px solid var(--ak-line);
+	}
+
+	.ak-overview__list a {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.6rem;
+		padding: 0.6rem 0.3rem;
+		text-decoration: none;
+		transition: background-color 0.22s, padding-left 0.22s;
+	}
+
+	.ak-overview__list a:hover {
+		padding-left: 0.7rem;
+		background: var(--primary-container);
+	}
+
+	.ak-overview__name {
+		font-size: 0.86rem;
+		letter-spacing: 0.02em;
+		color: var(--on-surface);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.ak-overview__count {
+		flex-shrink: 0;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.75rem;
+		padding: 0.12rem 0.5rem;
+		color: var(--on-surface-variant);
+		background: var(--surface-container-high);
+		clip-path: polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px);
+	}
+
+	/* 标签云：更大更松 */
+	.ak-overview__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+	}
+
+	.ak-overview__tag {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.32rem 0.7rem;
+		font-size: 0.78rem;
+		letter-spacing: 0.02em;
+		text-decoration: none;
+		color: var(--on-surface-variant);
+		background: var(--ak-accent-soft);
+		box-shadow: inset 0 0 0 1px var(--ak-line);
+		clip-path: polygon(5px 0, 100% 0, 100% 100%, 0 100%, 0 5px);
+		transition: background-color 0.22s, box-shadow 0.22s, color 0.22s;
+	}
+
+	.ak-overview__tag:hover {
+		color: var(--on-surface);
+		background: var(--primary-container);
+		box-shadow: inset 0 0 0 1px var(--ak-accent);
+	}
+
+	.ak-overview__tag-count {
+		padding: 0 0.25rem;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.62rem;
+		background: rgba(128, 128, 128, 0.2);
+	}
+
+	/* 分类标签：主色区分 */
+	.ak-overview__tag--cat {
+		color: var(--ak-accent);
+		box-shadow: inset 0 0 0 1px var(--ak-accent);
+	}
+</style>

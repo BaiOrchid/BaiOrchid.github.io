@@ -1,0 +1,52 @@
+---
+import Pagination from "@components/molecules/Pagination.astro";
+import ArknightsHero from "@components/organisms/ArknightsHero.astro";
+import ArknightsStage from "@components/organisms/ArknightsStage.astro";
+import type { GetStaticPaths } from "astro";
+import { postListConfig } from "@/config/postListConfig";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { getSortedPosts } from "../utils/content-utils";
+
+export const getStaticPaths = (async ({ paginate }) => {
+	const allBlogPosts = await getSortedPosts();
+	return paginate(allBlogPosts, { pageSize: postListConfig.pageSize });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+
+const allPosts = await getSortedPosts();
+const tags = new Set();
+const categories = new Set();
+for (const post of allPosts) {
+	for (const tag of post.data.tags ?? []) tags.add(String(tag));
+	const category = post.data.category;
+	if (category) categories.add(String(category));
+}
+
+let momentCount = 0;
+try {
+	const { getCollection } = await import("astro:content");
+	const moments = await getCollection("moments");
+	momentCount = moments.length;
+} catch {
+	momentCount = 0;
+}
+
+const index = page.currentPage ?? 1;
+const pagedPosts = index === 1 ? allPosts : page.data;
+---
+
+<MainGridLayout page="home">
+    <ArknightsHero
+        postCount={allPosts.length}
+        tagCount={tags.size}
+        categoryCount={categories.size}
+    />
+    <ArknightsStage
+        posts={pagedPosts}
+        tagCount={tags.size}
+        categoryCount={categories.size}
+        momentCount={momentCount}
+    />
+    <Pagination class="mx-auto onload-animation" page={page}></Pagination>
+</MainGridLayout>

@@ -1,0 +1,4479 @@
+/* ===================================================================
+   arknights.css —— 方舟皮肤主样式表
+   -------------------------------------------------------------------
+   维护导航（按行号分区，改动前先看这里）：
+
+   L0004  :root            字号变量总表（改字号只需动这里）
+   L0022  视觉层基座       全局配色 / 顶栏 / 卡片基础
+   L0094  纯 CSS 背景      多层叠加渐变网格
+   L0361  横幅改造         隐藏图片层，改为战术标题区
+   L0449  Hero             固定高度标题区
+   L0659  归档页           方舟时间轴
+   L0752  友链页           卡片网格
+   L0824  亮色主题         白色卡片 + 深色字 + 蓝强调
+   L1228  过渡动画         缓动曲线
+   L1364  音乐播放器       合并进左侧资料卡
+   L1410  数据总览         归档页右栏
+   L1491  首页舞台模式     隐藏三栏侧栏
+   L1573  罗德岛 Logo      右上角
+   L1643  卡片字号变量     全站单一来源
+   L1791  舞台卡片布局     基础尺寸
+   L2020  卡片悬浮         阴影层级
+   L2134  亮色纹理         层次与质感
+   L2253  头像框           切角 + 折角装饰
+   L2403  数据总览放大
+   L2518  主界面卡片       ★ 首页卡片 1:1 复刻（核心）
+   L2804  3D 倾斜与悬浮    ★ 透视与前后层次
+   L3147  终端卡元素       数值 / 装饰图形
+
+   -------------------------------------------------------------------
+   改样式的三条铁律：
+   1. 字号一律走 --ak-fs-* 变量，不要写死 rem
+   2. 覆盖已有规则时加 !important（上层用了）
+   3. 卡片颜色必须写在 ak-tile--xxx 上，别在 .ak-tile 加 background
+      （会导致彩色卡全黑——这个坑踩过 3 次）
+   =================================================================== */
+
+/* ===================================================================
+   字号中心：卡片文字只需改这里
+   =================================================================== */
+:root {
+	--ak-fs-tile-en: 2.15rem;        /* 卡片英文主标题 */
+	--ak-fs-tile-en-tall: 2.35rem;   /* 高卡英文 */
+	--ak-fs-tile-cn: 0.84rem;        /* 卡片中文副标题 */
+	--ak-fs-tile-big: 3.5rem;        /* 数字 */
+	--ak-fs-tile-big-term: 4.8rem;   /* 终端卡数字 */
+	--ak-fs-tile-sub: 0.76rem;
+	--ak-fs-tree-kicker: 0.72rem;
+
+	--ak-fs-post-title: 1.66rem;
+	--ak-fs-post-desc: 1.04rem;
+	--ak-fs-post-meta: 0.86rem;
+	--ak-fs-post-tag: 0.8rem;
+	--ak-fs-post-no: 0.9rem;
+
+	--ak-fs-zone-cn: 1.16rem;
+	--ak-fs-zone-en: 0.72rem;
+}
+/* ===================================================================
+   Arknights 视觉层（覆盖 Shirone 默认 Material 3 外观）
+   设计语言：深色战术界面 / 切角容器 / 细线框 / 斜纹状态条 / 等宽数字
+   =================================================================== */
+
+:root {
+	/* 方舟色板 */
+	--ak-black: #0b0d10;
+	--ak-panel: #12161a;
+	--ak-panel-2: #171c21;
+	--ak-line: rgba(255, 255, 255, 0.12);
+	--ak-line-strong: rgba(255, 255, 255, 0.3);
+	--ak-text: #d5dbe1;
+	--ak-text-dim: rgba(255, 255, 255, 0.42);
+	--ak-accent: #2bb3ff;
+	--ak-accent-soft: rgba(43, 179, 255, 0.14);
+	--ak-warn: #ff8a2b;
+	--ak-danger: #e8442f;
+	--ak-cut: 14px;
+	--ak-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ---------------------------------------------------------------
+   方舟暗色（默认）：仅作用于 html.dark
+   --------------------------------------------------------------- */
+html:root.dark,
+html.dark body :root {
+	--primary: var(--ak-accent);
+	--on-primary: #04121a;
+	--primary-container: rgba(43, 179, 255, 0.18);
+	--on-primary-container: #bde7ff;
+
+	--surface: var(--ak-black);
+	--surface-dim: #08090b;
+	--surface-bright: #1c2227;
+	--surface-container-lowest: #0d1013;
+	--surface-container-low: var(--ak-panel);
+	--surface-container: var(--ak-panel-2);
+	--surface-container-high: #1d2329;
+	--surface-container-highest: #242b31;
+
+	--on-surface: var(--ak-text);
+	--on-surface-variant: var(--ak-text-dim);
+	--outline: rgba(255, 255, 255, 0.22);
+	--outline-variant: var(--ak-line);
+
+	--card-bg: rgba(18, 22, 26, 0.9);
+	--radius-large: 0px;
+	--shape-corner-l: 0px;
+	--page-bg: #0b0d10;
+}
+
+/* Tailwind 工具类里的 surface 变量同步 */
+html:root.dark {
+	--page-bg: #0b0d10 !important;
+	--card-bg: rgba(18, 22, 26, 0.9) !important;
+}
+
+/* ---------- 全局：字体 / 背景 ---------- */
+body {
+	font-family: var(--ak-mono), "Yozai Medium", system-ui, sans-serif !important;
+	letter-spacing: 0.01em;
+}
+
+html.dark body {
+	background: #0b0d10 !important;
+}
+
+html:not(.dark) body {
+	background: #eef1f4 !important;
+}
+
+/* ===================================================================
+   纯 CSS 方舟背景：多层叠加
+   1) 远景径向辉光  2) 44px 网格  3) 扫描线  4) 缓慢漂移的斜纹带
+   5) 四角战术 HUD 括号
+   =================================================================== */
+
+body::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+	background-image:
+		radial-gradient(ellipse 70% 55% at 18% 8%, rgba(43, 179, 255, 0.14), transparent 62%),
+		radial-gradient(ellipse 60% 50% at 92% 88%, rgba(255, 138, 43, 0.09), transparent 62%),
+		radial-gradient(ellipse 85% 75% at 50% 46%, transparent 38%, rgba(0, 0, 0, 0.55) 100%),
+		linear-gradient(rgba(255, 255, 255, 0.024) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(255, 255, 255, 0.024) 1px, transparent 1px);
+	background-size:
+		100% 100%,
+		100% 100%,
+		100% 100%,
+		44px 44px,
+		44px 44px;
+}
+
+body::after {
+	content: "";
+	position: fixed;
+	inset: -20%;
+	pointer-events: none;
+	z-index: 0;
+	opacity: 0.5;
+	background-image:
+		repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 90px),
+		repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 4px);
+	animation: ak-drift 70s linear infinite;
+}
+
+@keyframes ak-drift {
+	from { transform: translate3d(0, 0, 0); }
+	to { transform: translate3d(-90px, -90px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	body::after { animation: none; }
+}
+
+html::before,
+html::after {
+	content: "";
+	position: fixed;
+	width: 34px;
+	height: 34px;
+	z-index: 2;
+	pointer-events: none;
+	opacity: 0.5;
+}
+
+html::before {
+	top: 14px;
+	left: 14px;
+	border-top: 1px solid var(--ak-accent);
+	border-left: 1px solid var(--ak-accent);
+}
+
+html::after {
+	bottom: 14px;
+	right: 14px;
+	border-bottom: 1px solid var(--ak-accent);
+	border-right: 1px solid var(--ak-accent);
+}
+
+@media (max-width: 767px) {
+	body::after { opacity: 0.35; }
+	html::before,
+	html::after { display: none; }
+}
+
+/* ---------- 卡片：切角 + 线框 + 斜纹角标 ---------- */
+.card-base,
+.card-base::before {
+	border-radius: 0 !important;
+}
+
+html .card-base,
+body .card-base {
+	position: relative;
+	background: var(--ak-panel) !important;
+	box-shadow: inset 0 0 0 1px var(--ak-line) !important;
+	clip-path: polygon(0 0, calc(100% - var(--ak-cut)) 0, 100% var(--ak-cut), 100% 100%, var(--ak-cut) 100%, 0 calc(100% - var(--ak-cut))) !important;
+	transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.card-base:hover {
+	box-shadow: inset 0 0 0 1px rgba(43, 179, 255, 0.45) !important;
+}
+
+/* 卡片左侧强调条 */
+.card-base::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 12%;
+	height: 76%;
+	width: 2px;
+	background: var(--ak-accent);
+	opacity: 0.35;
+	transition: opacity 0.3s ease;
+}
+
+.card-base:hover::after {
+	opacity: 1;
+}
+
+/* ---------- 标题：等宽 + 字距 ---------- */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.text-90,
+.text-75 {
+	font-family: var(--ak-mono), "Yozai Medium", sans-serif !important;
+	letter-spacing: 0.04em;
+}
+
+h1 {
+	text-transform: uppercase;
+}
+
+/* 一级标题左侧竖线 */
+#post-container h1,
+.prose h1 {
+	border-left: 3px solid var(--ak-accent);
+	padding-left: 14px;
+}
+
+.prose h2 {
+	border-left: 2px solid rgba(43, 179, 255, 0.5);
+	padding-left: 12px;
+	border-bottom: 1px solid var(--ak-line);
+	padding-bottom: 6px;
+}
+
+/* ---------- 顶栏：战术化 ---------- */
+#top-row,
+.top-bar {
+	background: rgba(11, 13, 16, 0.72) !important;
+	backdrop-filter: blur(10px);
+}
+
+#navbar-wrapper a,
+#navbar-wrapper button {
+	border-radius: 0 !important;
+	letter-spacing: 0.08em;
+}
+
+/* 当前页高亮：下划线 + 斜纹 */
+#navbar-wrapper .current-path::before,
+#navbar-wrapper a[aria-current="page"]::before {
+	border-radius: 0 !important;
+	border-bottom: 2px solid var(--ak-accent) !important;
+	box-shadow: none !important;
+}
+
+/* ---------- 按钮 ---------- */
+.btn-card,
+button:not(.nav-btn):not(#display-setting):not(.float-panel *) {
+	border-radius: 0 !important;
+}
+
+/* ---------- 标签 / 分类 pill ---------- */
+.tag-label,
+a[href*="/tags/"] {
+	border-radius: 0 !important;
+	clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px);
+}
+
+/* ---------- 侧栏统计 ---------- */
+.stat-item,
+.stat-title,
+.stat-value {
+	font-family: var(--ak-mono), sans-serif;
+}
+
+.stat-value {
+	letter-spacing: 0.06em !important;
+}
+
+/* ---------- 滚动条 ---------- */
+::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(255, 255, 255, 0.03);
+}
+
+::-webkit-scrollbar-thumb {
+	background: rgba(43, 179, 255, 0.5);
+	border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--ak-accent);
+}
+
+/* ---------- 选中 ---------- */
+::selection {
+	background: var(--ak-accent);
+	color: #04121a;
+}
+
+/* ---------- 链接 ---------- */
+.prose a {
+	color: var(--ak-accent);
+	border-bottom: 1px solid rgba(43, 179, 255, 0.35);
+	text-decoration: none;
+}
+
+.prose a:hover {
+	background: var(--ak-accent-soft);
+}
+
+/* ---------- 代码块 ---------- */
+pre,
+.expressive-code {
+	border-radius: 0 !important;
+	box-shadow: inset 0 0 0 1px var(--ak-line) !important;
+}
+
+code {
+	font-family: var(--ak-mono) !important;
+}
+
+/* ---------- 引用块 ---------- */
+.prose blockquote {
+	border-left: 3px solid var(--ak-accent);
+	background: linear-gradient(90deg, rgba(43, 179, 255, 0.09), transparent 70%);
+	border-radius: 0;
+}
+
+/* ---------- 页脚 ---------- */
+footer {
+	border-top: 1px solid var(--ak-line);
+	letter-spacing: 0.06em;
+}
+
+/* ---------- 横幅标题 ---------- */
+#banner h1,
+.banner-title {
+	font-family: var(--ak-mono), "Yozai Medium", sans-serif !important;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-shadow: 0 0 40px rgba(43, 179, 255, 0.4);
+}
+
+/* ---------- 分页 ---------- */
+.pagination a,
+.pagination span {
+	border-radius: 0 !important;
+	clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+
+/* ===================================================================
+   方舟横幅：隐藏图片层，改为战术标题区
+   =================================================================== */
+
+/* 图片层彻底隐藏（保留 DOM，避免主题 JS 报错） */
+.banner-stage__media,
+.banner-stage__scrim {
+	opacity: 0 !important;
+	visibility: hidden !important;
+}
+
+.banner-stage {
+	background: transparent !important;
+	overflow: visible !important;
+}
+
+/* 横幅文字改为左对齐战术排版 */
+.banner-stage__copy {
+	align-items: flex-start !important;
+	justify-content: flex-end !important;
+	text-align: left !important;
+	padding: 0 2.5rem 2.5rem 160px !important;
+	text-shadow: none !important;
+}
+
+.banner-stage__copy--home h1 {
+	font-family: var(--ak-mono) !important;
+	font-size: clamp(2.4rem, 4.6vw, 4.4rem) !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.06em !important;
+	text-transform: uppercase;
+	line-height: 0.98 !important;
+	background: linear-gradient(180deg, #ffffff 20%, #cfe9f7 60%, #7cb8d6 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent !important;
+	filter: drop-shadow(0 0 34px rgba(43, 179, 255, 0.35));
+	position: relative;
+	animation: ak-in .9s cubic-bezier(.2,.7,.25,1) both;
+}
+
+/* 标题左侧状态条 */
+.banner-stage__copy--home h1::before {
+	content: "";
+	position: absolute;
+	left: -18px;
+	top: 8%;
+	height: 84%;
+	width: 3px;
+	background: var(--ak-accent);
+	box-shadow: 0 0 14px rgba(43, 179, 255, 0.8);
+}
+
+.banner-stage__copy--home p {
+	margin-top: 0.9rem !important;
+	font-family: var(--ak-mono) !important;
+	font-size: 0.85rem !important;
+	letter-spacing: 0.32em !important;
+	color: rgba(255, 255, 255, 0.55) !important;
+	text-transform: uppercase;
+}
+
+@keyframes ak-in {
+	from { opacity: 0; transform: translateY(16px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+/* 其他页面的上下文标题也用方舟排版 */
+.banner-stage__context-title {
+	font-family: var(--ak-mono) !important;
+	letter-spacing: 0.06em !important;
+	text-transform: uppercase;
+}
+
+.banner-stage__context-divider {
+	background: var(--ak-accent) !important;
+	box-shadow: 0 0 12px rgba(43, 179, 255, 0.7);
+}
+
+@media (max-width: 1023.98px) {
+	.banner-stage__copy {
+		padding: 0 1.5rem 1.75rem 1.5rem !important;
+	}
+
+	.banner-stage__copy--home h1::before {
+		left: -12px;
+	}
+}
+/* ===================================================================
+   方舟 Hero：固定高度的战术标题区（覆盖主题动态 banner）
+   =================================================================== */
+body[data-current-page="home"]:not([data-banner-visible="true"])::part(none) {}
+
+/* 首页未启用 banner 图片时，用伪元素撑出 Hero 区域 */
+@media (min-width: 1024px) {
+	body[data-current-page="home"] #banner-wrapper[hidden] ~ #main-layout {
+		padding-top: 0;
+	}
+}
+
+/* 横幅内容定位修正：副标题不被裁切 */
+.banner-stage__copy--home {
+	overflow: visible !important;
+}
+
+.banner-stage__copy--home p {
+	display: block !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	white-space: nowrap;
+	overflow: visible !important;
+}
+/* ===================================================================
+   首页 Hero 接入后的布局修正
+   关闭 banner 后 #main-layout 仍是 absolute，需撑开并让出顶栏高度
+   =================================================================== */
+
+/* 给 body 补出顶栏 + 内容的空间，避免右栏/顶栏被覆盖 */
+body[data-current-page="home"][data-banner-visible="false"],
+body[data-current-page="home"]:not([data-banner-visible="true"]) {
+	padding-top: 0;
+}
+
+/* 无 banner 时保留绝对叠层布局，只把内容区下移到顶栏之下 */
+#banner-wrapper[hidden] ~ #main-layout {
+	top: var(--top-row-height, 64px) !important;
+}
+
+@media (max-width: 1023.98px) {
+	#banner-wrapper[hidden] ~ #main-layout {
+		top: 56px !important;
+	}
+}
+/* ===================================================================
+   背景强化 + 舟味强化（第二版）
+   =================================================================== */
+
+/* ---------- 1. 背景更明显 ---------- */
+body::before {
+	background-image:
+		radial-gradient(ellipse 75% 60% at 16% 6%, rgba(43, 179, 255, 0.26), transparent 60%),
+		radial-gradient(ellipse 65% 55% at 94% 90%, rgba(255, 138, 43, 0.16), transparent 60%),
+		radial-gradient(ellipse 80% 70% at 50% 48%, transparent 42%, rgba(0, 0, 0, 0.6) 100%),
+		linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px) !important;
+	background-size:
+		100% 100%,
+		100% 100%,
+		100% 100%,
+		44px 44px,
+		44px 44px !important;
+}
+
+body::after {
+	opacity: 0.85 !important;
+	background-image:
+		repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 90px),
+		repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 4px) !important;
+}
+
+/* 大号斜纹对角带：最显眼的一层“方舟感” */
+#ak-stripes {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+	opacity: 0.55;
+	background-image:
+		linear-gradient(135deg, transparent 46%, rgba(43, 179, 255, 0.055) 46% 54%, transparent 54%),
+		linear-gradient(135deg, transparent 14%, rgba(255, 255, 255, 0.03) 14% 15%, transparent 15%);
+	background-size: 520px 520px, 520px 520px;
+	background-position: -100px -100px, 0 0;
+}
+
+/* ---------- 2. 顶栏舟味：左侧状态条 + 角标 ---------- */
+#top-row {
+	border-bottom: 1px solid var(--ak-line);
+}
+
+#navbar-wrapper {
+	position: relative;
+}
+
+/* 顶栏底部斜纹状态条 */
+#navbar-wrapper::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -1px;
+	height: 2px;
+	background: repeating-linear-gradient(
+		135deg,
+		rgba(43, 179, 255, 0.55) 0 6px,
+		transparent 6px 14px
+	);
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+/* 站点名左侧加一个菱形标记 */
+#top-row a[href="/"]::before,
+#navbar-wrapper a[href$="/"]::before {
+	content: "";
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	margin-right: 8px;
+	background: var(--ak-accent);
+	transform: rotate(45deg) translateY(-1px);
+	box-shadow: 0 0 8px rgba(43, 179, 255, 0.9);
+	vertical-align: middle;
+}
+
+/* 导航项：hover 时左侧竖线（方舟菜单选中态） */
+#navbar-wrapper a:not([href="/"]) {
+	position: relative;
+}
+
+#navbar-wrapper a:not([href="/"]):hover::after {
+	content: "";
+	position: absolute;
+	left: 2px;
+	top: 22%;
+	height: 56%;
+	width: 2px;
+	background: var(--ak-accent);
+}
+
+/* ---------- 3. 卡片：角标 + 编号纹 ---------- */
+html .card-base::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 22px;
+	height: 22px;
+	pointer-events: none;
+	background: linear-gradient(225deg, rgba(255, 255, 255, 0.16), transparent 62%);
+	clip-path: polygon(100% 0, 100% 100%, 0 0);
+	z-index: 1;
+}
+
+/* 卡片底部细斜纹，弱化但持续存在 */
+html .card-base {
+	background-image:
+		repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.014) 0 2px, transparent 2px 7px),
+		linear-gradient(var(--ak-panel), var(--ak-panel)) !important;
+}
+
+/* ---------- 4. 标题统一带编号前缀样式 ---------- */
+.prose h2::before {
+	content: "// ";
+	color: var(--ak-accent);
+	opacity: 0.75;
+}
+
+/* ---------- 5. 按钮 / 标签：切角 + 线框 ---------- */
+a[href*="/tags/"],
+a[href*="/categories/"],
+.tag-label {
+	background: rgba(43, 179, 255, 0.08) !important;
+	box-shadow: inset 0 0 0 1px rgba(43, 179, 255, 0.28);
+	color: rgba(255, 255, 255, 0.75) !important;
+}
+
+a[href*="/tags/"]:hover,
+a[href*="/categories/"]:hover {
+	background: rgba(43, 179, 255, 0.2) !important;
+	box-shadow: inset 0 0 0 1px rgba(43, 179, 255, 0.7);
+}
+
+/* ---------- 6. 侧栏标题：方舟小标题 ---------- */
+#sidebar h3,
+#sidebar-secondary h3,
+#sidebar .card-base > :first-child {
+	letter-spacing: 0.16em;
+}
+
+/* ---------- 7. 图片：切角 + 描边 ---------- */
+.prose img {
+	clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+	box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* ---------- 8. 滚动进度条换成青色 ---------- */
+#progress-bar,
+.progress-bar {
+	background: var(--ak-accent) !important;
+}
+
+/* ---------- 9. 链接：方舟式带角标 ---------- */
+.prose a[href^="http"]::after {
+	content: "↗";
+	font-size: 0.75em;
+	margin-left: 2px;
+	opacity: 0.6;
+}
+/* ===================================================================
+   归档页：方舟时间轴
+   =================================================================== */
+.m3-blog-archive {
+	position: relative;
+	padding-left: 1.1rem;
+	border-left: 1px solid rgba(43, 179, 255, 0.28);
+}
+
+/* 时间轴节点 */
+.m3-blog-archive__dot {
+	width: 7px !important;
+	height: 7px !important;
+	border-radius: 0 !important;
+	background: var(--ak-accent) !important;
+	transform: rotate(45deg);
+	box-shadow: 0 0 10px rgba(43, 179, 255, 0.85);
+}
+
+.m3-blog-archive__group {
+	position: relative;
+}
+
+.m3-blog-archive__group::before {
+	content: "";
+	position: absolute;
+	left: calc(-1.1rem - 4px);
+	top: 0.75rem;
+	width: 7px;
+	height: 7px;
+	border: 1px solid var(--ak-accent);
+	transform: rotate(45deg);
+	background: var(--ak-black);
+}
+
+.m3-blog-archive__group-header {
+	border-radius: 0 !important;
+}
+
+.m3-blog-archive__group-title {
+	font-family: var(--ak-mono, monospace) !important;
+	letter-spacing: 0.1em !important;
+}
+
+/* 条目行：hover 左侧青色条 */
+.m3-blog-archive__item {
+	position: relative;
+	border-radius: 0 !important;
+	transition: background 0.25s, padding-left 0.25s;
+}
+
+.m3-blog-archive__item:hover {
+	background: rgba(43, 179, 255, 0.07);
+	padding-left: 0.5rem !important;
+}
+
+.m3-blog-archive__item:hover::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 20%;
+	height: 60%;
+	width: 2px;
+	background: var(--ak-accent);
+}
+
+/* 日期等宽 */
+.m3-blog-archive__date {
+	font-family: var(--ak-mono, monospace) !important;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.04em;
+}
+
+.m3-blog-archive__node {
+	border-radius: 0 !important;
+	transform: rotate(45deg);
+}
+
+.m3-blog-archive__count {
+	font-family: var(--ak-mono, monospace) !important;
+	border-radius: 0 !important;
+	clip-path: polygon(5px 0, 100% 0, 100% 100%, 0 100%, 0 5px);
+}
+
+/* 面包屑 */
+.archive-panel__crumb {
+	border-bottom: 1px solid var(--ak-line) !important;
+}
+
+.archive-panel__crumb-link {
+	border-radius: 0 !important;
+}
+
+/* ===================================================================
+   友链页：方舟卡片网格
+   =================================================================== */
+.friend-card {
+	position: relative !important;
+	border-radius: 0 !important;
+	background: rgba(20, 25, 30, 0.82) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09) !important;
+	clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+	transition: box-shadow 0.3s, transform 0.3s, background 0.3s;
+}
+
+.friend-card:hover {
+	background: rgba(30, 38, 46, 0.92) !important;
+	box-shadow: inset 0 0 0 1px rgba(43, 179, 255, 0.5) !important;
+	transform: translateY(-2px);
+}
+
+.friend-card::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 14%;
+	height: 72%;
+	width: 2px;
+	background: var(--ak-accent);
+	opacity: 0.35;
+	transition: opacity 0.3s;
+}
+
+.friend-card:hover::before {
+	opacity: 1;
+}
+
+.friend-card__title-text {
+	font-family: var(--ak-mono, monospace) !important;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.friend-card__host {
+	font-family: var(--ak-mono, monospace) !important;
+	font-size: 0.68rem !important;
+	color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.friend-card__tag {
+	border-radius: 0 !important;
+	background: rgba(43, 179, 255, 0.1) !important;
+	box-shadow: inset 0 0 0 1px rgba(43, 179, 255, 0.25);
+	clip-path: polygon(5px 0, 100% 0, 100% 100%, 0 100%, 0 5px);
+}
+
+.friend-card__arrow {
+	color: var(--ak-accent) !important;
+}
+
+/* ===================================================================
+   主菜单卡片：间距收紧
+   =================================================================== */
+#ak-menu {
+	gap: 0.5rem !important;
+}
+
+.ak-row {
+	gap: 0.5rem !important;
+}
+
+/* 招募卡文字描边，避免绿底上过淡 */
+.ak-recruit .ak-wide__cn {
+	color: rgba(13, 26, 5, 0.85) !important;
+}
+/* ===================================================================
+   方舟亮色（明日方舟默认 UI）：白色卡片 + 深色字 + 橙色强调
+   作用于 html:not(.dark)
+   =================================================================== */
+html:not(.dark) {
+	--ak-black: #eef1f4;
+	--ak-panel: #ffffff;
+	--ak-panel-2: #f7f8fa;
+	--ak-line: rgba(0, 0, 0, 0.1);
+	--ak-line-strong: rgba(0, 0, 0, 0.28);
+	--ak-text: #1b2026;
+	--ak-text-dim: rgba(0, 0, 0, 0.5);
+
+	/* Material 3 角色重映射 */
+	--primary: #2f7fd6;
+	--on-primary: #ffffff;
+	--primary-container: rgba(47, 127, 214, 0.14);
+	--on-primary-container: #6b3410;
+
+	--surface: #eef1f4;
+	--surface-dim: #e3e7eb;
+	--surface-bright: #ffffff;
+	--surface-container-lowest: #ffffff;
+	--surface-container-low: #ffffff;
+	--surface-container: #f7f8fa;
+	--surface-container-high: #eef1f4;
+	--surface-container-highest: #e6eaee;
+
+	--on-surface: #1b2026;
+	--on-surface-variant: rgba(0, 0, 0, 0.55);
+	--outline: rgba(0, 0, 0, 0.24);
+	--outline-variant: rgba(0, 0, 0, 0.1);
+
+	--card-bg: #ffffff;
+	--page-bg: #eef1f4;
+}
+
+html:not(.dark) {
+	--page-bg: #eef1f4 !important;
+	--card-bg: #ffffff !important;
+}
+
+/* 背景：浅灰网格 + 淡橙辉光 */
+html:not(.dark) body::before {
+	background-image:
+		radial-gradient(ellipse 70% 55% at 16% 6%, rgba(47, 127, 214, 0.1), transparent 60%),
+		radial-gradient(ellipse 60% 50% at 94% 90%, rgba(43, 179, 255, 0.07), transparent 60%),
+		linear-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px) !important;
+	background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px !important;
+}
+
+html:not(.dark) body::after {
+	opacity: 0.5 !important;
+	background-image:
+		repeating-linear-gradient(115deg, rgba(0, 0, 0, 0.025) 0 1px, transparent 1px 90px),
+		repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.02) 0 1px, transparent 1px 4px) !important;
+}
+
+html:not(.dark) #ak-stripes {
+	opacity: 0.4;
+	background-image:
+		linear-gradient(135deg, transparent 46%, rgba(47, 127, 214, 0.05) 46% 54%, transparent 54%),
+		linear-gradient(135deg, transparent 14%, rgba(0, 0, 0, 0.025) 14% 15%, transparent 15%);
+}
+
+/* 卡片：纯白 + 细线框 + 轻投影（方舟亮色面板） */
+html:not(.dark) .card-base {
+	background: #ffffff !important;
+	background-image: none !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+		0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+html:not(.dark) .card-base:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(47, 127, 214, 0.45),
+		0 5px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not(.dark) .card-base::after {
+	background: #2f7fd6;
+}
+
+html:not(.dark) .card-base::before {
+	background: linear-gradient(225deg, rgba(0, 0, 0, 0.07), transparent 62%);
+}
+
+/* 顶栏 */
+html:not(.dark) #top-row,
+html:not(.dark) .top-bar {
+	background: rgba(255, 255, 255, 0.88) !important;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+html:not(.dark) #navbar-wrapper::after {
+	background: repeating-linear-gradient(
+		135deg,
+		rgba(47, 127, 214, 0.55) 0 6px,
+		transparent 6px 14px
+	);
+}
+
+html:not(.dark) #top-row a[href="/"]::before {
+	background: #2f7fd6;
+	box-shadow: 0 0 8px rgba(47, 127, 214, 0.7);
+}
+
+html:not(.dark) #navbar-wrapper a:not([href="/"]):hover::after {
+	background: #2f7fd6;
+}
+
+html:not(.dark) #navbar-wrapper .current-path::before,
+html:not(.dark) #navbar-wrapper a[aria-current="page"]::before {
+	border-bottom-color: #2f7fd6 !important;
+}
+
+/* 链接 */
+html:not(.dark) .prose a {
+	color: #1f5fa8;
+	border-bottom-color: rgba(47, 127, 214, 0.35);
+}
+
+html:not(.dark) .prose a:hover {
+	background: rgba(47, 127, 214, 0.12);
+}
+
+/* 引用 / 行内代码 */
+html:not(.dark) .prose blockquote {
+	border-left-color: #2f7fd6;
+	background: linear-gradient(90deg, rgba(47, 127, 214, 0.08), transparent 70%);
+}
+
+html:not(.dark) .prose code {
+	color: #b8511a;
+	background: rgba(47, 127, 214, 0.1);
+}
+
+/* 标题竖线 */
+html:not(.dark) #post-container h1,
+html:not(.dark) .prose h1 {
+	border-left-color: #2f7fd6;
+}
+
+html:not(.dark) .prose h2 {
+	border-left-color: rgba(47, 127, 214, 0.5);
+	border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+html:not(.dark) .prose h2::before {
+	color: #2f7fd6;
+}
+
+/* 标签 */
+html:not(.dark) a[href*="/tags/"],
+html:not(.dark) a[href*="/categories/"],
+html:not(.dark) .tag-label {
+	background: rgba(47, 127, 214, 0.1) !important;
+	box-shadow: inset 0 0 0 1px rgba(47, 127, 214, 0.3);
+	color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* 代码块 */
+html:not(.dark) pre,
+html:not(.dark) .expressive-code {
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 滚动条 */
+html:not(.dark) ::-webkit-scrollbar-thumb {
+	background: rgba(47, 127, 214, 0.45);
+}
+
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+	background: #2f7fd6;
+}
+
+html:not(.dark) ::selection {
+	background: #2f7fd6;
+	color: #fff;
+}
+
+/* 归档时间轴 */
+html:not(.dark) .m3-blog-archive {
+	border-left-color: rgba(47, 127, 214, 0.3);
+}
+
+html:not(.dark) .m3-blog-archive__dot {
+	background: #2f7fd6 !important;
+	box-shadow: 0 0 10px rgba(47, 127, 214, 0.7);
+}
+
+html:not(.dark) .m3-blog-archive__group::before {
+	border-color: #2f7fd6;
+	background: #ffffff;
+}
+
+html:not(.dark) .m3-blog-archive__item:hover {
+	background: rgba(47, 127, 214, 0.08);
+}
+
+html:not(.dark) .m3-blog-archive__item:hover::before {
+	background: #2f7fd6;
+}
+
+/* 友链卡 */
+html:not(.dark) .friend-card {
+	background: #ffffff !important;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) .friend-card:hover {
+	box-shadow: inset 0 0 0 1px rgba(47, 127, 214, 0.45) !important;
+}
+
+html:not(.dark) .friend-card::before {
+	background: #2f7fd6;
+}
+
+html:not(.dark) .friend-card__tag {
+	background: rgba(47, 127, 214, 0.1) !important;
+	box-shadow: inset 0 0 0 1px rgba(47, 127, 214, 0.28);
+}
+
+html:not(.dark) .friend-card__arrow {
+	color: #2f7fd6 !important;
+}
+
+/* Hero 在亮色下也保留深色，形成对比（方舟主界面顶部信息条） */
+html:not(.dark) #ak-hero {
+	background: linear-gradient(
+		155deg,
+		rgba(255, 255, 255, 0.96) 0%,
+		rgba(247, 248, 250, 0.96) 40%,
+		rgba(238, 241, 244, 0.98) 100%
+	) !important;
+	box-shadow:
+		inset 0 1px 0 #ffffff,
+		inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+		0 16px 40px rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not(.dark) #ak-hero::before {
+	background: radial-gradient(
+		ellipse at 30% 30%,
+		rgba(47, 127, 214, 0.1),
+		transparent 64%
+	);
+}
+
+html:not(.dark) #ak-hero::after {
+	background: linear-gradient(
+		90deg,
+		rgba(47, 127, 214, 0.85),
+		rgba(47, 127, 214, 0.12) 70%,
+		transparent
+	);
+}
+
+html:not(.dark) .ak-hero__kicker,
+html:not(.dark) .ak-hero__kickerc {
+	color: #1f5fa8;
+}
+
+html:not(.dark) .ak-hero__dot,
+html:not(.dark) .ak-hero__divider span {
+	background: #2f7fd6;
+	box-shadow: 0 0 10px rgba(47, 127, 214, 0.7);
+}
+
+html:not(.dark) .ak-hero__title {
+	background: linear-gradient(180deg, #1b2026 18%, #3a444e 62%, #87693f 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	filter: drop-shadow(0 2px 20px rgba(47, 127, 214, 0.2));
+}
+
+html:not(.dark) .ak-hero__subtitle {
+	color: rgba(0, 0, 0, 0.5);
+}
+
+html:not(.dark) .ak-hero__meta-label {
+	color: rgba(0, 0, 0, 0.42);
+}
+
+html:not(.dark) .ak-hero__meta-value {
+	color: #1b2026;
+}
+
+html:not(.dark) .ak-hero__divider {
+	background: linear-gradient(
+		90deg,
+		rgba(0, 0, 0, 0.24),
+		rgba(0, 0, 0, 0.04) 55%,
+		transparent
+	);
+}
+
+html:not(.dark) .ak-hero__index {
+	color: rgba(0, 0, 0, 0.22);
+}
+
+html:not(.dark) .ak-hero__corner {
+	border-color: rgba(47, 127, 214, 0.7);
+}
+
+/* 主菜单卡片在亮色下：白卡 + 深色字 */
+html:not(.dark) .ak-card {
+	background: #ffffff;
+	box-shadow:
+		inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+		0 4px 14px rgba(0, 0, 0, 0.07);
+}
+
+html:not(.dark) .ak-card:hover {
+	background: #ffffff;
+	box-shadow:
+		inset 0 0 0 1px rgba(47, 127, 214, 0.5),
+		0 8px 22px rgba(0, 0, 0, 0.12);
+}
+
+html:not(.dark) .ak-wide__en,
+html:not(.dark) .ak-small__en,
+html:not(.dark) .ak-terminal__en {
+	color: #1b2026;
+}
+
+html:not(.dark) .ak-wide__cn,
+html:not(.dark) .ak-small__cn,
+html:not(.dark) .ak-terminal__cn {
+	color: rgba(0, 0, 0, 0.5);
+}
+
+html:not(.dark) .ak-wide__sub {
+	color: rgba(0, 0, 0, 0.32);
+}
+
+html:not(.dark) .ak-emblem {
+	background: rgba(0, 0, 0, 0.05);
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+	color: rgba(0, 0, 0, 0.75);
+}
+
+html:not(.dark) .ak-emblem--green {
+	color: #3f8f1f;
+	background: rgba(63, 143, 31, 0.08);
+	box-shadow: inset 0 0 0 1px rgba(63, 143, 31, 0.35);
+}
+
+html:not(.dark) .ak-emblem--blue {
+	color: #1a7fbf;
+	background: rgba(26, 127, 191, 0.08);
+	box-shadow: inset 0 0 0 1px rgba(26, 127, 191, 0.35);
+}
+
+html:not(.dark) .ak-chevron {
+	border-color: rgba(0, 0, 0, 0.3);
+}
+
+html:not(.dark) .ak-ring-track {
+	stroke: rgba(0, 0, 0, 0.12);
+}
+
+html:not(.dark) .ak-ring-num {
+	color: #1b2026;
+}
+
+html:not(.dark) .ring-fill {
+	stroke: #1b2026;
+}
+
+html:not(.dark) .ring-dash {
+	stroke: rgba(47, 127, 214, 0.5);
+}
+
+html:not(.dark) .ak-ring-label {
+	color: rgba(0, 0, 0, 0.4);
+}
+
+html:not(.dark) .ak-status__value {
+	color: #3f8f1f;
+}
+
+html:not(.dark) .ak-status__bar {
+	background: repeating-linear-gradient(
+		135deg,
+		rgba(63, 143, 31, 0.5) 0 5px,
+		transparent 5px 11px
+	);
+}
+
+html:not(.dark) .ak-soft {
+	background: #f7f8fa;
+}
+
+/* 播报卡 / 招募卡在亮色下保持彩底深字 */
+html:not(.dark) .ak-broadcast {
+	background: linear-gradient(122deg, #f7d94c 0%, #e0b81c 100%) !important;
+}
+
+html:not(.dark) .ak-recruit {
+	background: linear-gradient(100deg, #8ed13f 0%, #63ab28 55%, #3d5226 100%) !important;
+}
+/* ===================================================================
+   过渡动画 v3：更长的缓动 + 更小的位移 + 避免多段叠加
+   =================================================================== */
+
+/* 单段 keyframe：只动 transform + opacity，全程走 GPU 合成层 */
+@keyframes ak-fade-in {
+	from {
+		opacity: 0;
+		transform: translate3d(0, 0.5rem, 0);
+	}
+	to {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+html .onload-animation {
+	animation: ak-fade-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+
+/* 动画结束后主动释放合成层，避免长时间滚动时重绘 */
+html .onload-animation {
+	animation-fill-mode: both !important;
+}
+
+/* 页面切换：位移极小、时长加长，纯淡入淡出为主 */
+html.is-changing .transition-swup-fade {
+	transition:
+		opacity 300ms cubic-bezier(0.05, 0.7, 0.1, 1),
+		transform 300ms cubic-bezier(0.05, 0.7, 0.1, 1) !important;
+}
+
+html.is-animating .transition-swup-fade {
+	opacity: 0 !important;
+	transform: translate3d(0, 0.25rem, 0) !important;
+}
+
+/* 卡片 hover：更慢更柔 */
+html .card-base {
+	transition:
+		box-shadow 320ms cubic-bezier(0.05, 0.7, 0.1, 1),
+		background-color 320ms cubic-bezier(0.05, 0.7, 0.1, 1),
+		transform 320ms cubic-bezier(0.05, 0.7, 0.1, 1) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html .onload-animation,
+	html.is-changing .transition-swup-fade {
+		animation: none !important;
+		transition: none !important;
+		opacity: 1 !important;
+		transform: none !important;
+	}
+}
+
+/* ===================================================================
+   卡片放大：修正选择器（文章卡片并非 .card-base）
+   =================================================================== */
+html .m3e-post-list {
+	gap: 1.4rem !important;
+}
+
+html .m3-blog-postcard {
+	padding: 0;
+	min-height: 0;
+}
+
+html .m3-blog-postcard__body {
+	padding: 1.75rem 1.9rem !important;
+	min-height: 7rem;
+	box-sizing: border-box;
+}
+
+html .m3-blog-postcard__title {
+	font-size: 1.32rem !important;
+	line-height: 1.38 !important;
+	letter-spacing: 0.01em;
+}
+
+html .m3-blog-postcard__excerpt,
+html .m3-blog-postcard__desc {
+	font-size: 0.95rem !important;
+	line-height: 1.72 !important;
+	margin-top: 0.7rem !important;
+}
+
+html .m3-blog-postcard__meta {
+	margin-top: 0.85rem !important;
+	font-size: 0.82rem !important;
+}
+
+/* 卡片本体：切角 + 纹理（文章卡片） */
+html .m3-blog-postcard {
+	position: relative;
+	background-color: var(--ak-panel) !important;
+	background-image:
+		repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 18px),
+		repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 18px) !important;
+	box-shadow: inset 0 0 0 1px var(--ak-line) !important;
+	clip-path: polygon(
+		0 0,
+		calc(100% - 16px) 0,
+		100% 16px,
+		100% 100%,
+		16px 100%,
+		0 calc(100% - 16px)
+	);
+	transition: box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+html .m3-blog-postcard:hover {
+	box-shadow: inset 0 0 0 1px rgba(43, 179, 255, 0.45) !important;
+}
+
+html:not(.dark) .m3-blog-postcard {
+	background-color: #ffffff !important;
+	background-image:
+		repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0 1px, transparent 1px 16px),
+		repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.016) 0 1px, transparent 1px 16px) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+		0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+html:not(.dark) .m3-blog-postcard:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(47, 127, 214, 0.45),
+		0 4px 14px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 侧栏卡片真放大 */
+html #sidebar .card-base,
+html #sidebar-secondary .card-base {
+	padding: 1.4rem 1.45rem !important;
+}
+
+/* ===================================================================
+   音乐播放器合并进左侧资料卡（当作同一张终端卡的下半部）
+   =================================================================== */
+/* 侧栏顶部组：资料卡与播放器之间去掉间距，视觉连成一张 */
+html #sidebar > div[data-sidebar-group] {
+	gap: 0 !important;
+}
+
+html #sidebar > div[data-sidebar-group] > .sidebar-widget:nth-child(1) .card-base {
+	clip-path: polygon(
+		0 0,
+		calc(100% - 16px) 0,
+		100% 16px,
+		100% 100%,
+		0 100%
+	);
+	box-shadow:
+		inset 0 0 0 1px var(--ak-line),
+		inset 0 -1px 0 var(--ak-line) !important;
+}
+
+html #sidebar > div[data-sidebar-group] > .sidebar-widget:nth-child(2) {
+	margin-top: -1px;
+}
+
+html #sidebar > div[data-sidebar-group] > .sidebar-widget:nth-child(2) .card-base {
+	clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+	box-shadow: inset 0 0 0 1px var(--ak-line) !important;
+	padding-top: 1rem !important;
+}
+
+/* 播放器标题隐藏（作为资料卡的一部分，不再单独出头） */
+html #sidebar > div[data-sidebar-group] > .sidebar-widget:nth-child(2) .card-base > header {
+	display: none !important;
+}
+
+/* 播放器按钮区压缩，减少高度 */
+html #sidebar > div[data-sidebar-group] > .sidebar-widget:nth-child(2) .card-base {
+	--music-row-gap: 0.5rem;
+}
+
+/* 公告卡与上面两张拉开距离 */
+html #sidebar > div[data-sidebar-group] > .sidebar-widget:nth-child(3) {
+	margin-top: 1rem;
+}
+
+/* ===================================================================
+   数据总览里的分类标签：与普通标签区分
+   =================================================================== */
+#ak-overview .ak-overview__tag--cat {
+	background: var(--primary-container);
+	box-shadow: inset 0 0 0 1px var(--primary);
+	color: var(--on-primary-container);
+}
+/* ---------- 修正：文章卡片正文不被宽度裁断 ---------- */
+html .m3-blog-postcard__body {
+	min-width: 0;
+	overflow: visible;
+}
+
+html .m3-blog-postcard__excerpt,
+html .m3-blog-postcard__desc {
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	overflow-wrap: anywhere;
+}
+
+html .m3-blog-postcard__title {
+	white-space: normal !important;
+}
+
+/* 封面图缩小一点，给正文让位 */
+html .m3-blog-postcard__cover {
+	flex: 0 0 auto;
+	max-width: 220px;
+}
+
+@media (max-width: 1279.98px) {
+	html .m3-blog-postcard__cover {
+		display: none;
+	}
+}
+/* ---------- 修正：解除描述 2 行截断 ---------- */
+html .m3-blog-postcard__desc,
+html .m3-blog-postcard__excerpt {
+	-webkit-line-clamp: unset !important;
+	line-clamp: unset !important;
+	display: block !important;
+	-webkit-box-orient: initial !important;
+	overflow: visible !important;
+	transition: none;
+}
+
+/* ---------- 修正：正文区真正占满剩余宽度 ---------- */
+html .m3-blog-postcard {
+	display: flex;
+	align-items: stretch;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+html .m3-blog-postcard__body {
+	flex: 1 1 auto;
+	width: auto;
+	max-width: none;
+	box-sizing: border-box;
+}
+
+/* 封面固定窄一些，正文能吃掉更多宽度 */
+html .m3-blog-postcard__cover {
+	flex: 0 0 200px !important;
+	max-width: 200px !important;
+	min-width: 0;
+}
+
+/* 窄屏隐藏封面，纯文字更易读 */
+@media (max-width: 1439.98px) {
+	html .m3-blog-postcard__cover {
+		display: none !important;
+	}
+}
+
+/* ---------- 顶部导航与主内容对齐 ---------- */
+html #top-row {
+	padding-inline: 1rem;
+}
+/* ===================================================================
+   首页舞台模式：三栏侧栏全部隐藏，交给 ArknightsStage 接管
+   =================================================================== */
+html body[data-current-page="home"] #main-layout #sidebar,
+html body[data-current-page="home"] #main-layout #sidebar-secondary,
+html body[data-current-page="home"] #main-layout #toc,
+body[data-current-page="home"] #sidebar,
+body[data-current-page="home"] #sidebar-secondary {
+	display: none !important;
+}
+
+/* 首页主内容占满整个页宽 */
+body[data-current-page="home"] #main-grid {
+	grid-template-columns: minmax(0, 1fr) !important;
+}
+
+body[data-current-page="home"] #main-content-column {
+	grid-column: 1 / -1 !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+/* 首页隐藏分类筛选条，减少顶部噪音 */
+body[data-current-page="home"] .m3e-category-bar,
+body[data-current-page="home"] [class*="category-bar"] {
+	display: none !important;
+}
+/* ===================================================================
+/* ===================================================================
+   暗色：增加层次与质感
+   =================================================================== */
+html.dark #ak-stage .ak-tile,
+html.dark #ak-stage .ak-post {
+	background-image:
+		/* 顶部高光 */
+		linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, transparent 30%),
+		/* 斜纹 */
+		repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 7px),
+		/* 细网格 */
+		repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 16px),
+		repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 16px) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.08),
+		0 4px 14px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* 暗色卡片底纹：右下角微光，避免死黑 */
+html.dark #ak-stage .ak-tile::before,
+html.dark #ak-stage .ak-post::before {
+	content: "";
+	position: absolute;
+	right: -20%;
+	bottom: -30%;
+	width: 70%;
+	height: 80%;
+	pointer-events: none;
+	background: radial-gradient(
+		ellipse at 70% 70%,
+		rgba(43, 179, 255, 0.07),
+		transparent 68%
+	);
+}
+
+html.dark #ak-stage .ak-tile:hover,
+html.dark #ak-stage .ak-post:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(43, 179, 255, 0.55),
+		inset 0 1px 0 rgba(255, 255, 255, 0.12),
+		0 10px 28px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* 暗色：过渡带加强 */
+html.dark #ak-seam .ak-seam__line {
+	stroke-width: 2.2;
+	filter: drop-shadow(0 0 6px rgba(43, 179, 255, 0.5));
+}
+
+html.dark #ak-seam .ak-seam__node::after {
+	border-color: rgba(43, 179, 255, 0.55);
+}
+
+/* ===================================================================
+   Hero 罗德岛 logo（右侧）
+   =================================================================== */
+#ak-hero .ak-hero__logo {
+	position: absolute;
+	top: 50%;
+	right: 2.6rem;
+	transform: translateY(-50%);
+	width: 200px;
+	height: 200px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	z-index: 0;
+}
+
+#ak-hero .ak-hero__logo img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	opacity: 0.92;
+	filter: drop-shadow(0 0 26px rgba(43, 179, 255, 0.45));
+	animation: ak-logo-breathe 7s ease-in-out infinite;
+}
+
+@keyframes ak-logo-breathe {
+	0%,
+	100% {
+		opacity: 0.82;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.035);
+	}
+}
+
+/* 亮色下 logo 反相成深色，避免白线看不见 */
+html:not(.dark) #ak-hero .ak-hero__logo img {
+	filter: invert(1) brightness(0.55) sepia(1) saturate(2.4) hue-rotate(190deg)
+		drop-shadow(0 0 20px rgba(47, 127, 214, 0.3));
+	opacity: 0.32;
+}
+
+/* 窄屏隐藏 logo，避免压到标题 */
+@media (max-width: 1100px) {
+	#ak-hero .ak-hero__logo {
+		width: 140px;
+		height: 140px;
+		right: 1.2rem;
+		opacity: 0.7;
+	}
+}
+
+@media (max-width: 767px) {
+	#ak-hero .ak-hero__logo {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#ak-hero .ak-hero__logo img {
+		animation: none;
+	}
+}
+
+/* ===================================================================
+/* ===================================================================
+
+/* ===================================================================
+   卡片字号：全部走变量（改 --ak-fs-* 一处即可全站生效）
+   =================================================================== */
+html #ak-stage .ak-tile__en {
+	font-size: var(--ak-fs-tile-en) !important;
+	letter-spacing: 0.05em;
+	line-height: 1.18;
+}
+
+html #ak-stage .ak-tile--tall .ak-tile__en {
+	font-size: var(--ak-fs-tile-en-tall) !important;
+}
+
+html #ak-stage .ak-tile__cn {
+	font-size: var(--ak-fs-tile-cn) !important;
+	letter-spacing: 0.26em;
+	margin-top: 0.4rem;
+}
+
+html #ak-stage .ak-tile__big {
+	font-size: var(--ak-fs-tile-big) !important;
+	line-height: 1;
+}
+
+html #ak-stage .ak-tile--terminal .ak-tile__big {
+	font-size: var(--ak-fs-tile-big-term) !important;
+}
+
+html #ak-stage .ak-tile__sub {
+	font-size: var(--ak-fs-tile-sub) !important;
+	letter-spacing: 0.24em;
+	margin-top: 0.42rem;
+}
+
+html #ak-stage .ak-tile__kicker,
+html #ak-stage .ak-tile__live {
+	font-size: var(--ak-fs-tree-kicker) !important;
+	letter-spacing: 0.24em;
+}
+
+html #ak-stage .ak-tile__badge {
+	font-size: 0.62rem !important;
+}
+
+/* 左栏文章 */
+html #ak-stage .ak-post__title {
+	font-size: var(--ak-fs-post-title) !important;
+	line-height: 1.34;
+}
+
+html #ak-stage .ak-post__desc {
+	font-size: var(--ak-fs-post-desc) !important;
+	line-height: 1.78;
+}
+
+html #ak-stage .ak-post__date {
+	font-size: var(--ak-fs-post-meta) !important;
+}
+
+html #ak-stage .ak-post__tag {
+	font-size: var(--ak-fs-post-tag) !important;
+	padding: 0.12rem 0.58rem;
+}
+
+html #ak-stage .ak-post__no {
+	font-size: var(--ak-fs-post-no) !important;
+	width: 2.4rem;
+	height: 2.4rem;
+	flex: 0 0 2.4rem;
+}
+
+/* 分区标题 */
+html #ak-stage .ak-zone-cn {
+	font-size: var(--ak-fs-zone-cn) !important;
+}
+
+html #ak-stage .ak-zone-en {
+	font-size: var(--ak-fs-zone-en) !important;
+}
+
+/* 归档按钮 */
+html #ak-stage .ak-more {
+	font-size: 1.08rem;
+	padding: 1.05rem 1.3rem;
+}
+
+/* 配合字号的行高 */
+html #ak-stage .ak-cluster {
+	grid-auto-rows: var(--ak-cluster-row);
+}
+
+html #ak-stage .ak-post {
+	padding: 1.4rem 1.45rem 1.4rem 1.15rem;
+}
+/* ===================================================================
+   卡片英文强调：加粗、纯白、发光
+   =================================================================== */
+html #ak-stage .ak-tile__en {
+	font-weight: 700 !important;
+	color: var(--ak-text-strong) !important;
+	text-shadow: 0 0 18px var(--ak-en-glow);
+	letter-spacing: 0.03em;
+}
+
+html #ak-stage .ak-tile--tall .ak-tile__en {
+	font-weight: 700 !important;
+	color: var(--ak-text-strong) !important;
+}
+
+html.dark {
+	--ak-text-strong: #ffffff;
+	--ak-en-glow: rgba(43, 179, 255, 0.22);
+}
+
+html:not(.dark) {
+	--ak-text-strong: #0d1725;
+	--ak-en-glow: rgba(47, 127, 214, 0.16);
+}
+
+/* 中文副标题退后，形成层级 */
+html #ak-stage .ak-tile__cn {
+	color: var(--ak-text-faint) !important;
+	opacity: 0.85;
+}
+
+/* 彩色卡上的英文保持深色但加粗 */
+html #ak-stage .ak-tile--yellow .ak-tile__en,
+html #ak-stage .ak-tile--green .ak-tile__en {
+	font-weight: 700 !important;
+	text-shadow: none !important;
+}
+
+html.dark #ak-stage .ak-tile--yellow .ak-tile__en,
+html.dark #ak-stage .ak-tile--green .ak-tile__en {
+	color: #10180c !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile--yellow .ak-tile__en,
+html:not(.dark) #ak-stage .ak-tile--green .ak-tile__en {
+	color: #1a2a08 !important;
+}
+
+/* 左栏文章标题同样加粗 */
+html #ak-stage .ak-post__title {
+	font-weight: 700 !important;
+	color: var(--ak-text-strong) !important;
+}
+
+/* ===================================================================
+   舞台卡片基础布局（唯一一份定义）
+   =================================================================== */
+html #ak-stage #ak-left {
+	min-width: 0;
+	padding-right: 1.1rem;
+}
+
+html #ak-stage .ak-post-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+}
+
+html #ak-stage .ak-seam {
+	position: relative;
+}
+
+html #ak-stage #ak-seam {
+	position: relative;
+	align-self: stretch;
+	min-height: 640px;
+	pointer-events: none;
+}
+
+html #ak-stage .ak-seam__curve {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+
+html #ak-stage #ak-right {
+	min-width: 0;
+	padding-left: 0.4rem;
+}
+
+html #ak-stage .ak-cluster {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-auto-rows: var(--ak-cluster-row);
+	gap: var(--ak-cluster-gap);
+}
+
+html #ak-stage .ak-tile {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	grid-column: span var(--w, 1);
+	grid-row: span var(--h, 1);
+	min-width: 0;
+	padding: 1rem 1.05rem;
+	overflow: hidden;
+	text-decoration: none;
+	color: var(--ak-text);
+	background-color: var(--ak-panel-solid);
+	background-image: var(--ak-tex-hi), var(--ak-tex-diag), var(--ak-tex-grid-x), var(--ak-tex-grid-y),
+		var(--ak-tex-base);
+	box-shadow: var(--ak-shadow-card);
+	clip-path: polygon(0 0, calc(100% - var(--ak-cut-md)) 0, 100% var(--ak-cut-md), 100% 100%, 0 100%);
+	transform: translate(calc((var(--x) - 1) * 0.35rem), calc((var(--y) - 1.5) * 0.3rem));
+	transition: box-shadow var(--ak-dur-ui) var(--ak-ease);
+}
+
+html #ak-stage .ak-tile:hover {
+	box-shadow: var(--ak-shadow-card-hover);
+}
+
+/* 终端卡：占两列，居中 */
+html #ak-stage .ak-tile--terminal {
+	justify-content: center;
+	padding-left: 1.4rem;
+	background-image: radial-gradient(ellipse at 18% 20%, var(--ak-accent-soft), transparent 62%),
+		var(--ak-tex-diag), var(--ak-tex-grid-x), var(--ak-tex-grid-y), var(--ak-tex-base);
+}
+
+html #ak-stage .ak-tile--terminal .ak-tile__big {
+	font-size: var(--ak-fs-tile-big-term) !important;
+}
+
+/* 高卡 */
+html #ak-stage .ak-tile--tall .ak-tile__en {
+	font-size: var(--ak-fs-tile-en-tall) !important;
+}
+
+/* 幽灵卡 */
+html #ak-stage .ak-tile--ghost {
+	opacity: 0.62;
+}
+
+html #ak-stage .ak-tile--ghost:hover {
+	opacity: 1;
+}
+
+/* ===================================================================
+   纯色卡片：暗色与亮色各自的完整定义
+   =================================================================== */
+html.dark #ak-stage .ak-tile--yellow {
+	background-color: #d8b823 !important;
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, transparent 40%),
+		repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 8px),
+		linear-gradient(150deg, #e8c72e 0%, #b99a12 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.16), 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark #ak-stage .ak-tile--green {
+	background-color: #5c9c22 !important;
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, transparent 42%),
+		repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 8px),
+		linear-gradient(150deg, #6bab26 0%, #3f7318 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18), 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile--yellow {
+	background-color: #f7e05a !important;
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 45%),
+		repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.04) 0 1px, transparent 1px 7px),
+		linear-gradient(150deg, #fbe76b 0%, #e6c21f 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(160, 130, 0, 0.22), 0 3px 10px rgba(180, 150, 0, 0.2),
+		0 12px 30px rgba(20, 40, 70, 0.06) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile--green {
+	background-color: #9ad44a !important;
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, transparent 45%),
+		repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.04) 0 1px, transparent 1px 7px),
+		linear-gradient(150deg, #a6dc55 0%, #7cbb30 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(50, 100, 10, 0.22), 0 3px 10px rgba(90, 150, 30, 0.18),
+		0 12px 30px rgba(20, 40, 70, 0.06) !important;
+}
+
+/* 彩色卡文字 */
+html.dark #ak-stage .ak-tile--yellow .ak-tile__en,
+html.dark #ak-stage .ak-tile--yellow .ak-tile__big {
+	color: #10180c !important;
+}
+
+html.dark #ak-stage .ak-tile--green .ak-tile__en,
+html.dark #ak-stage .ak-tile--green .ak-tile__cn {
+	color: #0a1403 !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile--yellow .ak-tile__en,
+html:not(.dark) #ak-stage .ak-tile--yellow .ak-tile__big {
+	color: #4a3d00 !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile--green .ak-tile__en,
+html:not(.dark) #ak-stage .ak-tile--green .ak-tile__cn {
+	color: #26400a !important;
+}
+
+html #ak-stage .ak-tile--yellow:hover,
+html #ak-stage .ak-tile--green:hover {
+	filter: brightness(1.06);
+	box-shadow: var(--ak-shadow-card-hover) !important;
+}
+
+/* 彩色卡不叠暗色光斑 */
+html #ak-stage .ak-tile--yellow::before,
+html #ak-stage .ak-tile--green::before {
+	display: none;
+}
+/* ===================================================================
+   终端卡纵向排版：TERMINAL / 数字 / 副标题 三段拉开
+   =================================================================== */
+html #ak-stage .ak-tile--terminal {
+	justify-content: flex-start;
+	padding: 1.15rem 1.05rem 1rem 1.4rem;
+}
+
+/* 终端卡里的 kicker 改为正常流，不再绝对定位 */
+html #ak-stage .ak-tile--terminal .ak-tile__kicker {
+	position: static;
+	top: auto;
+	left: auto;
+	order: 1;
+	margin-bottom: 0.9rem;
+}
+
+/* 数字下推、与上行拉开 */
+html #ak-stage .ak-tile--terminal .ak-tile__big {
+	order: 2;
+	margin: 0;
+	line-height: 0.92;
+	letter-spacing: 0.01em;
+}
+
+/* 副标题与数字拉开 */
+html #ak-stage .ak-tile--terminal .ak-tile__sub {
+	order: 3;
+	margin-top: 0.85rem;
+}
+
+/* 数字与下方扫描线之间留空间 */
+html #ak-stage .ak-tile--terminal .ak-tile__scanline {
+	bottom: 0;
+	top: auto;
+	height: 1px;
+	margin-top: 0.9rem;
+}
+
+/* ---- 其他卡片的 kicker 同样保证不压正文 ---- */
+html #ak-stage .ak-tile__kicker,
+html #ak-stage .ak-tile__live {
+	position: absolute;
+	top: 0.75rem;
+	left: 1.05rem;
+}
+
+/* 有 kicker 的卡片，也给正文留出顶部空间 */
+html #ak-stage .ak-tile {
+	padding-top: 1.15rem;
+}
+
+/* 数字与上方元素的通用间距 */
+html #ak-stage .ak-tile__big {
+	margin-block: 0.15rem 0.1rem;
+	line-height: 1;
+}
+
+/* 标签/分类卡：数字上下都拉开 */
+html #ak-stage .ak-tile > .ak-tile__en + .ak-tile__big,
+html #ak-stage .ak-tile > .ak-tile__big + .ak-tile__cn {
+	margin-top: 0.45rem;
+}
+
+
+/* ===================================================================
+   卡片悬浮感：用阴影层级 + 描边 + 光斑，不用 transform 位移
+   （transform 在之前排查卡顿时被禁用，改用纯阴影堆叠实现立体感）
+   =================================================================== */
+
+/* 统一过渡曲线 */
+html #ak-stage .ak-tile,
+html #ak-stage .ak-post,
+html .m3-blog-postcard,
+html .card-base,
+html .friend-card {
+	transition:
+		box-shadow 280ms cubic-bezier(0.22, 1, 0.36, 1),
+		border-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+		background-color 280ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* ---- 暗色悬浮：三层阴影外扩 ---- */
+html.dark #ak-stage .ak-tile:hover,
+html.dark #ak-stage .ak-post:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(43, 179, 255, 0.7),
+		inset 0 1px 0 rgba(255, 255, 255, 0.16),
+		0 2px 6px rgba(0, 0, 0, 0.5),
+		0 12px 28px rgba(0, 0, 0, 0.6),
+		0 0 0 4px rgba(43, 179, 255, 0.06) !important;
+}
+
+/* 暗色悬浮光斑：鼠标区域泛光 */
+html.dark #ak-stage .ak-tile::after,
+html.dark #ak-stage .ak-post::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0;
+	background: radial-gradient(
+		ellipse at 50% 0%,
+		rgba(43, 179, 255, 0.14),
+		transparent 68%
+	);
+	transition: opacity 280ms ease;
+}
+
+html.dark #ak-stage .ak-tile:hover::after,
+html.dark #ak-stage .ak-post:hover::after {
+	opacity: 1;
+}
+
+/* ---- 亮色悬浮：更明显的投影下沉 ---- */
+html:not(.dark) #ak-stage .ak-tile:hover,
+html:not(.dark) #ak-stage .ak-post:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(47, 127, 214, 0.55),
+		inset 0 1.5px 0 #ffffff,
+		0 1px 2px rgba(20, 40, 70, 0.1),
+		0 8px 18px rgba(20, 40, 70, 0.13),
+		0 20px 44px rgba(20, 40, 70, 0.12) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile::after,
+html:not(.dark) #ak-stage .ak-post::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0;
+	background: linear-gradient(
+		160deg,
+		rgba(47, 127, 214, 0.08) 0%,
+		transparent 55%
+	);
+	transition: opacity 280ms ease;
+}
+
+html:not(.dark) #ak-stage .ak-tile:hover::after,
+html:not(.dark) #ak-stage .ak-post:hover::after {
+	opacity: 1;
+}
+
+/* 彩色卡悬浮：只加描边和阴影，不改底色 */
+html.dark #ak-stage .ak-tile--yellow:hover,
+html.dark #ak-stage .ak-tile--green:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+		0 2px 6px rgba(0, 0, 0, 0.5),
+		0 14px 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile--yellow:hover,
+html:not(.dark) #ak-stage .ak-tile--green:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+		0 2px 4px rgba(120, 100, 0, 0.15),
+		0 10px 22px rgba(120, 100, 0, 0.2),
+		0 22px 46px rgba(20, 40, 70, 0.14) !important;
+}
+
+/* 文章卡片（非首页）同样处理 */
+html .m3-blog-postcard:hover {
+	box-shadow:
+		inset 0 0 0 1px var(--primary),
+		0 4px 10px rgba(0, 0, 0, 0.18),
+		0 16px 36px rgba(0, 0, 0, 0.16) !important;
+}
+
+html:not(.dark) .m3-blog-postcard:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(47, 127, 214, 0.55),
+		0 2px 5px rgba(20, 40, 70, 0.1),
+		0 12px 28px rgba(20, 40, 70, 0.14),
+		0 24px 52px rgba(20, 40, 70, 0.1) !important;
+}
+
+/* ===================================================================
+   亮色主题：加强层次与纹理
+   =================================================================== */
+
+/* 页面底色：加入更明显的冷蓝渐变层次 */
+html:not(.dark) body {
+	background:
+		radial-gradient(ellipse 90% 60% at 10% 0%, #ffffff 0%, transparent 50%),
+		radial-gradient(ellipse 70% 55% at 95% 95%, #dce9f7 0%, transparent 60%),
+		linear-gradient(170deg, #f4f8fd 0%, #e7eef7 55%, #e2eaf4 100%) !important;
+}
+
+/* 背景网格加深 */
+html:not(.dark) body::before {
+	background-image:
+		radial-gradient(ellipse 65% 55% at 14% 6%, rgba(47, 127, 214, 0.16), transparent 62%),
+		radial-gradient(ellipse 60% 50% at 90% 88%, rgba(140, 190, 235, 0.16), transparent 62%),
+		linear-gradient(rgba(20, 40, 70, 0.07) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(20, 40, 70, 0.07) 1px, transparent 1px) !important;
+	background-size: 100% 100%, 100% 100%, 38px 38px, 38px 38px !important;
+}
+
+/* 斜纹层 */
+html:not(.dark) body::after {
+	opacity: 0.9 !important;
+	background-image:
+		repeating-linear-gradient(115deg, rgba(20, 40, 70, 0.05) 0 1px, transparent 1px 72px),
+		repeating-linear-gradient(0deg, rgba(20, 40, 70, 0.04) 0 1px, transparent 1px 4px) !important;
+}
+
+html:not(.dark) #ak-stripes {
+	opacity: 0.7;
+	background-image:
+		linear-gradient(135deg, transparent 46%, rgba(47, 127, 214, 0.1) 46% 54%, transparent 54%),
+		linear-gradient(135deg, transparent 14%, rgba(20, 40, 70, 0.05) 14% 15%, transparent 15%);
+}
+
+/* 卡片：更强的双向光 + 纸张颗粒 + 多层阴影 */
+html:not(.dark) #ak-stage .ak-tile,
+html:not(.dark) #ak-stage .ak-post {
+	background-image:
+		radial-gradient(ellipse at 0% 0%, rgba(210, 230, 250, 0.7), transparent 48%),
+		radial-gradient(ellipse at 100% 100%, rgba(180, 212, 244, 0.55), transparent 50%),
+		repeating-linear-gradient(135deg, rgba(20, 40, 70, 0.035) 0 1px, transparent 1px 5px),
+		repeating-linear-gradient(90deg, rgba(20, 40, 70, 0.04) 0 1px, transparent 1px 13px),
+		repeating-linear-gradient(0deg, rgba(20, 40, 70, 0.032) 0 1px, transparent 1px 13px),
+		linear-gradient(180deg, #ffffff 0%, #f5f8fc 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(20, 40, 70, 0.12),
+		inset 0 2px 0 #ffffff,
+		inset 0 -1px 0 rgba(20, 40, 70, 0.05),
+		0 1px 2px rgba(20, 40, 70, 0.08),
+		0 6px 16px rgba(20, 40, 70, 0.1),
+		0 16px 36px rgba(20, 40, 70, 0.06) !important;
+}
+
+/* 亮色卡片：顶部高光线增强 */
+html:not(.dark) #ak-stage .ak-tile::before,
+html:not(.dark) #ak-stage .ak-post::before {
+	content: "";
+	position: absolute;
+	left: 10%;
+	right: 10%;
+	top: 0;
+	height: 1px;
+	pointer-events: none;
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+}
+
+/* 首页文章卡也加强 */
+html:not(.dark) .m3-blog-postcard,
+html:not(.dark) .card-base {
+	box-shadow:
+		inset 0 0 0 1px rgba(20, 40, 70, 0.11),
+		inset 0 2px 0 #ffffff,
+		0 2px 4px rgba(20, 40, 70, 0.07),
+		0 8px 20px rgba(20, 40, 70, 0.08) !important;
+}
+
+/* 侧栏卡片：略微内凹，与主内容区分层级 */
+html:not(.dark) #sidebar .card-base,
+html:not(.dark) #sidebar-secondary .card-base {
+	background-image:
+		radial-gradient(ellipse at 0% 0%, rgba(200, 224, 248, 0.5), transparent 50%),
+		repeating-linear-gradient(90deg, rgba(20, 40, 70, 0.03) 0 1px, transparent 1px 14px),
+		linear-gradient(180deg, #fdfefe 0%, #f2f6fb 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(20, 40, 70, 0.1),
+		inset 0 2px 0 #ffffff,
+		0 1px 3px rgba(20, 40, 70, 0.06) !important;
+}
+
+/* 顶栏亮色：加投影分离层级 */
+html:not(.dark) #top-row {
+	box-shadow:
+		0 1px 0 rgba(20, 40, 70, 0.07),
+		0 4px 12px rgba(20, 40, 70, 0.05),
+		0 12px 28px rgba(20, 40, 70, 0.04) !important;
+}
+
+/* Hero 亮色：更强的玻璃感 */
+html:not(.dark) #ak-hero {
+	background:
+		radial-gradient(ellipse 70% 70% at 92% 50%, rgba(47, 127, 214, 0.2), transparent 64%),
+		radial-gradient(ellipse 60% 60% at 8% 0%, rgba(160, 205, 245, 0.18), transparent 58%),
+		linear-gradient(155deg, #ffffff 0%, #f2f7fd 46%, #e6eef8 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(20, 40, 70, 0.1),
+		inset 0 2px 0 #ffffff,
+		0 4px 10px rgba(20, 40, 70, 0.07),
+		0 18px 44px rgba(20, 40, 70, 0.1) !important;
+}
+
+/* 图片 / 标签 pill 在亮色下加边 */
+html:not(.dark) .prose img {
+	box-shadow:
+		0 0 0 1px rgba(20, 40, 70, 0.1),
+		0 4px 14px rgba(20, 40, 70, 0.1);
+}
+/* ===================================================================
+   头像框：方舟切角 + 底部数据条
+   =================================================================== */
+
+/* 外层：负责切角与投影（overflow 不裁剪，让伪元素能贴底） */
+html .m3-profile__avatar-link {
+	position: relative;
+	display: block;
+	box-shadow:
+		0 0 0 1px var(--ak-line),
+		0 8px 22px rgba(0, 0, 0, 0.3);
+	transition: box-shadow 0.3s;
+}
+
+html .m3-profile__avatar-link:hover {
+	box-shadow:
+		0 0 0 1px var(--ak-accent),
+		0 12px 30px rgba(0, 0, 0, 0.42);
+}
+
+html:not(.dark) .m3-profile__avatar-link {
+	box-shadow:
+		0 0 0 1px rgba(20, 40, 70, 0.14),
+		0 4px 14px rgba(20, 40, 70, 0.12);
+}
+
+html:not(.dark) .m3-profile__avatar-link:hover {
+	box-shadow:
+		0 0 0 1px rgba(47, 127, 214, 0.6),
+		0 10px 26px rgba(20, 40, 70, 0.2);
+}
+
+/* 图片本体：切角 + 提亮对比 */
+html .m3-profile__avatar-link img {
+	display: block;
+	width: 100%;
+	height: auto;
+	filter: saturate(1.08) contrast(1.06) brightness(1.02);
+	clip-path: polygon(
+		0 0,
+		calc(100% - 20px) 0,
+		100% 20px,
+		100% 100%,
+		20px 100%,
+		0 calc(100% - 20px)
+	);
+	transition: filter 0.3s;
+}
+
+html .m3-profile__avatar-link:hover img {
+	filter: saturate(1.14) contrast(1.08) brightness(1.05);
+}
+
+/* 顶部渐隐 */
+html .m3-profile__avatar-link::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 26%;
+	pointer-events: none;
+	z-index: 2;
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0%, transparent 100%);
+	clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+}
+
+html:not(.dark) .m3-profile__avatar-link::before {
+	background: linear-gradient(180deg, rgba(20, 40, 70, 0.12) 0%, transparent 100%);
+}
+
+/* 左下折角装饰：与切角呼应的三角光块 */
+html .m3-profile__avatar-link::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 30px;
+	height: 30px;
+	pointer-events: none;
+	z-index: 4;
+	background: linear-gradient(
+		45deg,
+		var(--ak-accent) 0%,
+		var(--ak-accent) 45%,
+		transparent 45%
+	);
+	opacity: 0.75;
+	transition: opacity 0.3s;
+	clip-path: polygon(0 0, 0 100%, 100% 100%);
+}
+
+html .m3-profile__avatar-link:hover::after {
+	opacity: 1;
+}
+
+/* 悬停遮罩：跟随切角 */
+html .m3-profile__avatar-overlay {
+	border-radius: 0 !important;
+	clip-path: polygon(
+		0 0,
+		calc(100% - 20px) 0,
+		100% 20px,
+		100% 100%,
+		20px 100%,
+		0 calc(100% - 20px)
+	);
+}
+/* ===================================================================
+   首页卡片悬浮：保留错落位移的同时叠加抬升
+   =================================================================== */
+@media (min-width: 769px) {
+	html #ak-stage .ak-tile {
+		transition:
+			box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1),
+			transform 300ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+	}
+
+	/* hover：在原有错落偏移的基础上再上移 6px 并放大一点点 */
+	html #ak-stage .ak-tile:hover {
+		transform: translate(
+			calc((var(--x) - 1) * 0.35rem),
+			calc((var(--y) - 1.5) * 0.3rem - 6px)
+		) scale(1.02) !important;
+		z-index: 5;
+		position: relative;
+	}
+
+	/* 左栏文章卡：上移 5px */
+	html #ak-stage .ak-post {
+		transition:
+			box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1),
+			transform 300ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+	}
+
+	html #ak-stage .ak-post:hover {
+		transform: translateY(-5px) !important;
+		z-index: 5;
+		position: relative;
+	}
+}
+
+/* 减少动效时不位移 */
+@media (prefers-reduced-motion: reduce) {
+	html #ak-stage .ak-tile:hover,
+	html #ak-stage .ak-post:hover {
+		transform: none !important;
+	}
+}
+
+/* ===================================================================
+   右栏「数据总览」再放大一档
+   =================================================================== */
+
+/* 侧栏整体再加宽 */
+html #sidebar,
+html #sidebar-secondary {
+	--ak-sidebar-extra: 1;
+}
+
+/* 指标块：更大 */
+#ak-overview .ak-overview__metrics {
+	gap: 0.8rem;
+	margin-bottom: 1.9rem;
+}
+
+#ak-overview .ak-overview__metrics li {
+	min-height: 6.2rem;
+	padding: 1rem 1.1rem;
+}
+
+#ak-overview .ak-overview__metric-value {
+	font-size: 2.6rem;
+	letter-spacing: -0.01em;
+}
+
+#ak-overview .ak-overview__metric-label {
+	margin-top: 0.35rem;
+	font-size: 0.74rem;
+	letter-spacing: 0.28em;
+}
+
+/* 标题再大 */
+#ak-overview .ak-overview__title {
+	font-size: 1.32rem;
+	letter-spacing: 0.2em;
+}
+
+#ak-overview .ak-overview__en {
+	font-size: 0.72rem;
+	letter-spacing: 0.34em;
+}
+
+#ak-overview .ak-overview__head {
+	margin-bottom: 1.6rem;
+	padding-bottom: 1rem;
+}
+
+#ak-overview .ak-overview__head::before {
+	width: 44px;
+	height: 2px;
+}
+
+/* 分区标题 */
+#ak-overview .ak-overview__sub {
+	font-size: 0.94rem;
+	margin-bottom: 1rem;
+}
+
+#ak-overview .ak-overview__sub::before {
+	width: 3px;
+	height: 0.95rem;
+}
+
+#ak-overview .ak-overview__sub-en {
+	font-size: 0.62rem;
+}
+
+/* 分区间距 */
+#ak-overview .ak-overview__section + .ak-overview__section {
+	margin-top: 1.8rem;
+	padding-top: 1.4rem;
+}
+
+/* 系列行 */
+#ak-overview .ak-overview__list a {
+	padding: 0.72rem 0.35rem;
+}
+
+#ak-overview .ak-overview__name {
+	font-size: 0.94rem;
+}
+
+#ak-overview .ak-overview__count {
+	font-size: 0.8rem;
+	padding: 0.15rem 0.6rem;
+}
+
+/* 标签更大 */
+#ak-overview .ak-overview__tags {
+	gap: 0.5rem;
+}
+
+#ak-overview .ak-overview__tag {
+	padding: 0.4rem 0.8rem;
+	font-size: 0.84rem;
+}
+
+#ak-overview .ak-overview__tag-count {
+	font-size: 0.68rem;
+}
+/* GitHub 卡图标：六边形 + 内点（联系/外链） */
+html #ak-stage .ak-tile__icon[data-i="links"]::before {
+	inset: 0;
+	border: 1.5px solid currentColor;
+	clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+
+html #ak-stage .ak-tile__icon[data-i="links"]::after {
+	inset: 6px;
+	background: currentColor;
+	transform: rotate(45deg);
+	opacity: 0.85;
+}
+
+/* ===================================================================
+   方舟主界面卡片：1:1 复刻参考图
+   3 行错落结构 + 统一倾斜 + 大字号中文
+   =================================================================== */
+
+/* 覆盖旧的列布局 */
+html #ak-stage .ak-cluster {
+	display: flex !important;
+	flex-direction: column;
+	gap: 0.6rem;
+	transform: none !important;
+	padding: 1rem 0;
+}
+
+/* 每行 */
+.ak-row {
+	display: flex;
+	gap: 0.6rem;
+	align-items: stretch;
+}
+
+.ak-row--1 {
+	padding-left: 0;
+}
+
+
+.ak-row--1 .ak-tile--terminal {
+	flex: 1;
+}
+
+.ak-row--2 {
+	padding-left: 0;
+}
+
+.ak-row--2 .ak-tile {
+	flex: 1;
+}
+
+.ak-row--3 {
+	padding-left: 0;
+}
+
+.ak-row--3 .ak-tile--purchase {
+	flex: 0 0 38%;
+}
+
+.ak-row3-right {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.ak-row3-right .ak-tile {
+	flex: 1;
+}
+
+.ak-row--4 {
+	padding-left: 0;
+}
+
+.ak-row--4 .ak-tile--mission {
+	flex: 0 0 24%;
+}
+
+.ak-row--4 .ak-tile--reveal {
+	flex: 1;
+}
+
+/* ============ 卡片通用 ============ */
+html #ak-stage .ak-tile {
+	position: relative !important;
+	left: auto !important;
+	top: auto !important;
+	width: auto !important;
+	height: auto !important;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 0.9rem 1.1rem;
+	overflow: hidden;
+	transform: none !important;
+	transition:
+		transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+		box-shadow 280ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* 中文大字 */
+html #ak-stage .ak-tile__cn-big {
+	font-size: 1.9rem;
+	font-weight: 800;
+	line-height: 1;
+	letter-spacing: 0.06em;
+	color: #fff;
+	text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+}
+
+/* 中文中字 */
+html #ak-stage .ak-tile__cn-mid {
+	font-size: 1.05rem;
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: 0.04em;
+	color: #fff;
+	text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* 英文小字 */
+html #ak-stage .ak-tile__en-sub {
+	margin-top: 0.25rem;
+	font-family: var(--ak-mono, monospace);
+	font-size: 0.62rem;
+	font-weight: 600;
+	letter-spacing: 0.14em;
+	color: rgba(255, 255, 255, 0.72);
+	text-transform: uppercase;
+}
+
+html #ak-stage .ak-tile__en-tiny {
+	margin-top: 0.2rem;
+	font-family: var(--ak-mono, monospace);
+	font-size: 0.5rem;
+	letter-spacing: 0.12em;
+	color: rgba(255, 255, 255, 0.55);
+	text-transform: uppercase;
+}
+
+/* 小标签 */
+html #ak-stage .ak-tile__tag {
+	position: absolute;
+	top: 0.5rem;
+	left: 0.6rem;
+	padding: 0.05rem 0.35rem;
+	font-size: 0.5rem;
+	letter-spacing: 0.1em;
+	color: #fff;
+	background: #d63319;
+	z-index: 2;
+}
+
+html #ak-stage .ak-tile__tagline {
+	position: absolute;
+	bottom: 0.55rem;
+	left: 0.6rem;
+	font-size: 0.58rem;
+	color: rgba(255, 255, 255, 0.6);
+}
+
+/* ============ 行1：理智卡 ============ */
+
+
+
+/* 爆炸装饰 */
+
+/* ============ 行1：终端卡 ============ */
+html #ak-stage .ak-tile--terminal {
+	background:
+		radial-gradient(ellipse at 80% 20%, rgba(43, 179, 255, 0.25), transparent 60%),
+		linear-gradient(135deg, #0d1a26 0%, #070c12 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(43, 179, 255, 0.35) !important;
+}
+
+html #ak-stage .ak-tile__starburst {
+	position: absolute;
+	right: 6%;
+	top: 50%;
+	width: 60px;
+	height: 60px;
+	transform: translateY(-50%);
+	background: rgba(255, 255, 255, 0.85);
+	clip-path: polygon(50% 0%, 58% 32%, 88% 12%, 68% 42%, 100% 50%, 68% 58%, 88% 88%, 58% 68%, 50% 100%, 42% 68%, 12% 88%, 32% 58%, 0% 50%, 32% 42%, 12% 12%, 42% 32%);
+}
+
+/* ============ 行2 ============ */
+html #ak-stage .ak-tile--squad {
+	background:
+		radial-gradient(ellipse at 75% 50%, rgba(255, 180, 60, 0.2), transparent 62%),
+		linear-gradient(135deg, #1a1410 0%, #0c0a08 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 180, 60, 0.3) !important;
+}
+
+html #ak-stage .ak-tile--operator {
+	background:
+		radial-gradient(ellipse at 75% 50%, rgba(255, 200, 80, 0.22), transparent 62%),
+		linear-gradient(135deg, #17130d 0%, #0b0908 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 200, 80, 0.32) !important;
+}
+
+/* 徽记：菱形几何 */
+html #ak-stage .ak-tile__emblem {
+	position: absolute;
+	right: 8%;
+	top: 50%;
+	width: 34px;
+	height: 34px;
+	transform: translateY(-50%) rotate(45deg);
+	background: linear-gradient(135deg, #ffb347, #e07b39);
+	opacity: 0.85;
+	clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+/* ============ 行3：采购中心（紫）============ */
+html #ak-stage .ak-tile--purchase {
+	background:
+		radial-gradient(ellipse at 30% 40%, rgba(160, 100, 255, 0.4), transparent 65%),
+		linear-gradient(135deg, #2a1a4a 0%, #120a24 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(160, 100, 255, 0.4) !important;
+}
+
+html #ak-stage .ak-tile--purchase .ak-tile__emblem {
+	background: linear-gradient(135deg, #c9a4ff, #8a5cf6);
+}
+
+/* ============ 行3：公开招募（红）============ */
+html #ak-stage .ak-tile--recruit-head {
+	background:
+		linear-gradient(135deg, #b8232a 0%, #7a1418 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 100, 100, 0.4) !important;
+}
+
+/* ============ 行3：干员寻访（蓝）============ */
+html #ak-stage .ak-tile--headhunt {
+	background:
+		radial-gradient(ellipse at 70% 50%, rgba(60, 150, 255, 0.35), transparent 62%),
+		linear-gradient(135deg, #14243d 0%, #0a121f 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(60, 150, 255, 0.35) !important;
+}
+
+/* ============ 行4：任务 ============ */
+html #ak-stage .ak-tile--mission {
+	background:
+		radial-gradient(ellipse at 70% 50%, rgba(255, 140, 60, 0.22), transparent 62%),
+		linear-gradient(135deg, #1a1208 0%, #0b0806 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 140, 60, 0.3) !important;
+}
+
+/* ============ 行4：揭幕者们 ============ */
+html #ak-stage .ak-tile--reveal {
+	background:
+		radial-gradient(ellipse at 80% 30%, rgba(255, 200, 100, 0.28), transparent 62%),
+		linear-gradient(135deg, #241a0e 0%, #0e0b07 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 200, 100, 0.35) !important;
+}
+
+/* ============ 统一倾斜 ============ */
+html #ak-stage .ak-cluster {
+	perspective: 1800px;
+}
+
+@media (min-width: 1024px) {
+	html #ak-stage .ak-cluster {
+		transform: rotateX(2deg) rotateY(-3.5deg) translate3d(0.6rem, 0, 0) !important;
+		transform-origin: center center;
+		transform-style: preserve-3d;
+	}
+}
+
+/* 悬停 */
+@media (min-width: 769px) {
+	html #ak-stage .ak-tile:hover {
+		transform: translateY(-3px) scale(1.012) !important;
+		z-index: 5;
+	}
+}
+
+/* 亮色适配 */
+html:not(.dark) #ak-stage .ak-tile {
+	box-shadow: inset 0 0 0 1px rgba(20, 40, 70, 0.15), 0 4px 14px rgba(20, 40, 70, 0.12) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__cn-big,
+html:not(.dark) #ak-stage .ak-tile__cn-mid {
+	color: #fff;
+}
+
+/* 窄屏取消倾斜 */
+@media (max-width: 1023.98px) {
+	html #ak-stage .ak-cluster {
+		transform: none !important;
+	}
+
+	html #ak-stage .ak-tile__cn-big {
+		font-size: 1.5rem;
+	}
+}
+
+/* ===================================================================
+   最终调整：整体拉长放大 + 3D 倾斜 + 悬浮
+   =================================================================== */
+
+/* ---- 尺寸放大 ---- */
+html #ak-stage .ak-cluster {
+	display: flex !important;
+	flex-direction: column;
+	gap: 0.85rem;
+	padding: 1.5rem 0 2rem;
+	transform: none;
+}
+
+html #ak-stage .ak-row {
+	display: flex;
+	gap: 0.85rem;
+	align-items: stretch;
+	min-height: 168px;
+}
+
+html #ak-stage .ak-row--1 {
+	min-height: 232px;
+}
+
+html #ak-stage .ak-row--2 {
+	min-height: 184px;
+}
+
+html #ak-stage .ak-row--3 {
+	min-height: 196px;
+}
+
+html #ak-stage .ak-row--4 {
+	min-height: 172px;
+}
+
+/* 行1 左卡：关于我 */
+html #ak-stage .ak-row--1 .ak-tile--about-hero {
+	flex: 0 0 42%;
+}
+
+html #ak-stage .ak-row--1 .ak-tile--terminal {
+	flex: 1;
+}
+
+html #ak-stage .ak-row--2 .ak-tile {
+	flex: 1;
+}
+
+html #ak-stage .ak-row--3 .ak-tile--purchase {
+	flex: 0 0 40%;
+}
+
+html #ak-stage .ak-row3-right {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.65rem;
+}
+
+html #ak-stage .ak-row--4 .ak-tile--mission {
+	flex: 0 0 28%;
+}
+
+html #ak-stage .ak-row--4 .ak-tile--reveal {
+	flex: 1;
+}
+
+/* ---- 卡片基础 ---- */
+html #ak-stage .ak-cluster .ak-tile {
+	position: relative !important;
+	left: auto !important;
+	top: auto !important;
+	width: auto !important;
+	height: auto !important;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 1.1rem 1.35rem;
+	overflow: hidden;
+	transform: none !important;
+	transform-style: preserve-3d;
+	transition:
+		transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+		box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* ---- 字号全面放大 ---- */
+html #ak-stage .ak-tile__cn-xl {
+	font-size: 3.4rem;
+	font-weight: 900;
+	line-height: 0.95;
+	letter-spacing: 0.04em;
+	color: #fff;
+	text-shadow: 0 4px 28px rgba(0, 0, 0, 0.75);
+}
+
+html #ak-stage .ak-tile__cn-big {
+	font-size: 2.5rem;
+	font-weight: 800;
+	line-height: 1;
+	letter-spacing: 0.05em;
+	color: #fff;
+	text-shadow: 0 3px 18px rgba(0, 0, 0, 0.65);
+}
+
+html #ak-stage .ak-tile__cn-mid {
+	margin-top: 0.2rem;
+	font-size: 1.35rem;
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: 0.04em;
+	color: #fff;
+	text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+
+html #ak-stage .ak-tile__en-sub {
+	margin-top: 0.45rem;
+	font-family: var(--ak-mono, monospace);
+	font-size: 0.86rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	color: rgba(255, 255, 255, 0.82);
+	text-transform: uppercase;
+}
+
+html #ak-stage .ak-tile__en-tiny {
+	margin-top: 0.25rem;
+	font-family: var(--ak-mono, monospace);
+	font-size: 0.66rem;
+	letter-spacing: 0.12em;
+	color: rgba(255, 255, 255, 0.6);
+	text-transform: uppercase;
+}
+
+
+
+
+/* ---- 行1 左：关于我（深蓝渐变）---- */
+html #ak-stage .ak-tile--about-hero {
+	justify-content: flex-end;
+	align-items: flex-start;
+	background:
+		radial-gradient(ellipse 80% 70% at 85% 15%, rgba(43, 179, 255, 0.32), transparent 62%),
+		radial-gradient(ellipse 60% 60% at 0% 100%, rgba(120, 80, 255, 0.22), transparent 60%),
+		linear-gradient(150deg, #0d2235 0%, #071019 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(43, 179, 255, 0.45),
+		inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ---- 行1 右：终端（暖橙）---- */
+html #ak-stage .ak-tile--terminal {
+	justify-content: flex-end;
+	background:
+		radial-gradient(ellipse 70% 70% at 15% 30%, rgba(255, 140, 40, 0.3), transparent 62%),
+		linear-gradient(150deg, #2a1a10 0%, #0e0805 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 160, 60, 0.45),
+		inset 0 1px 0 rgba(255, 200, 150, 0.12) !important;
+}
+
+/* ---- 星芒装饰 ---- */
+html #ak-stage .ak-tile__starburst {
+	position: absolute;
+	right: 7%;
+	top: 14%;
+	width: 76px;
+	height: 76px;
+	background: rgba(255, 255, 255, 0.9);
+	clip-path: polygon(50% 0%, 57% 32%, 85% 15%, 68% 43%, 100% 50%, 68% 57%, 85% 85%, 57% 68%, 50% 100%, 43% 68%, 15% 85%, 32% 57%, 0% 50%, 32% 43%, 15% 15%, 43% 32%);
+	filter: drop-shadow(0 0 20px rgba(43, 179, 255, 0.6));
+}
+
+/* ---- 爆炸装饰 ---- */
+
+/* ---- 行2：归档 / 标签 ---- */
+html #ak-stage .ak-tile--squad {
+	background:
+		radial-gradient(ellipse 70% 70% at 78% 50%, rgba(255, 180, 60, 0.22), transparent 64%),
+		linear-gradient(140deg, #1c1610 0%, #0a0806 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 180, 60, 0.35) !important;
+}
+
+html #ak-stage .ak-tile--operator {
+	background:
+		radial-gradient(ellipse 70% 70% at 78% 50%, rgba(255, 200, 80, 0.24), transparent 64%),
+		linear-gradient(140deg, #1a1510 0%, #0a0807 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 200, 80, 0.38) !important;
+}
+
+html #ak-stage .ak-tile__emblem {
+	position: absolute;
+	right: 9%;
+	top: 50%;
+	width: 46px;
+	height: 46px;
+	transform: translateY(-50%) rotate(45deg);
+	background: linear-gradient(135deg, #ffb347, #e0651f);
+	clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+	opacity: 0.9;
+	filter: drop-shadow(0 0 14px rgba(255, 160, 60, 0.6));
+}
+
+/* ---- 行3：友链（紫）---- */
+html #ak-stage .ak-tile--purchase {
+	background:
+		radial-gradient(ellipse 75% 75% at 30% 45%, rgba(160, 100, 255, 0.45), transparent 66%),
+		linear-gradient(140deg, #2b1a4d 0%, #100825 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(160, 100, 255, 0.45) !important;
+}
+
+html #ak-stage .ak-tile--purchase .ak-tile__emblem {
+	background: linear-gradient(135deg, #c9a4ff, #7d4ef0);
+}
+
+/* ---- 行3：动态（红）---- */
+html #ak-stage .ak-tile--recruit-head {
+	background: linear-gradient(135deg, #b8232a 0%, #6e1216 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 110, 110, 0.45) !important;
+}
+
+/* ---- 行3：相册（蓝）---- */
+html #ak-stage .ak-tile--headhunt {
+	background:
+		radial-gradient(ellipse 70% 70% at 72% 50%, rgba(60, 150, 255, 0.38), transparent 64%),
+		linear-gradient(140deg, #14243d 0%, #080f1a 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(60, 150, 255, 0.38) !important;
+}
+
+/* ---- 行4：分类（橙）---- */
+html #ak-stage .ak-tile--mission {
+	background:
+		radial-gradient(ellipse 70% 70% at 72% 50%, rgba(255, 140, 60, 0.25), transparent 64%),
+		linear-gradient(140deg, #1e1408 0%, #0b0705 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 140, 60, 0.35) !important;
+}
+
+/* ---- 行4：GitHub（金）---- */
+html #ak-stage .ak-tile--reveal {
+	background:
+		radial-gradient(ellipse 75% 70% at 82% 30%, rgba(255, 200, 100, 0.3), transparent 64%),
+		linear-gradient(140deg, #261c0e 0%, #0d0a06 100%) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 200, 100, 0.38) !important;
+}
+
+/* ---- 小标签 ---- */
+html #ak-stage .ak-tile__tag {
+	position: absolute;
+	top: 0.7rem;
+	left: 0.8rem;
+	padding: 0.1rem 0.45rem;
+	font-size: 0.62rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	color: #fff;
+	background: #d63319;
+	z-index: 2;
+}
+
+/* ===================================================================
+   3D 倾斜 + 悬浮（整体统一倾斜，卡片独立悬浮）
+   =================================================================== */
+html #ak-stage #ak-right {
+	perspective: 1600px;
+	perspective-origin: 40% 45%;
+}
+
+@media (min-width: 1024px) {
+	html #ak-stage .ak-cluster {
+		transform:
+			translate3d(0.8rem, 0, 0)
+			rotateY(-5deg)
+			rotateX(2.5deg) !important;
+		transform-origin: center center;
+		transform-style: preserve-3d;
+		transition: transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	/* 每行给不同深度，形成层次 */
+	html #ak-stage .ak-row--1 {
+		translate: 0 0 24px;
+	}
+
+	html #ak-stage .ak-row--2 {
+		translate: 0 0 14px;
+	}
+
+	html #ak-stage .ak-row--3 {
+		translate: 0 0 6px;
+	}
+
+	html #ak-stage .ak-row--4 {
+		translate: 0 0 -4px;
+	}
+
+	/* 悬停：单卡向前浮起 */
+	html #ak-stage .ak-cluster .ak-tile:hover {
+		transform: translateZ(40px) translateY(-4px) scale(1.015) !important;
+		z-index: 30;
+		box-shadow:
+			inset 0 0 0 1px var(--ak-accent),
+			0 16px 44px rgba(0, 0, 0, 0.6),
+			0 0 0 3px rgba(43, 179, 255, 0.12) !important;
+	}
+}
+
+/* ---- 亮色适配 ---- */
+html:not(.dark) #ak-stage .ak-cluster .ak-tile {
+	box-shadow:
+		inset 0 0 0 1px rgba(20, 40, 70, 0.16),
+		0 4px 14px rgba(20, 40, 70, 0.12) !important;
+}
+
+/* ---- 窄屏 ---- */
+@media (max-width: 1023.98px) {
+	html #ak-stage .ak-cluster {
+		transform: none !important;
+	}
+
+	html #ak-stage .ak-row {
+		min-height: auto !important;
+	}
+
+	html #ak-stage .ak-cluster .ak-tile {
+		min-height: 120px;
+	}
+
+	html #ak-stage .ak-tile__cn-xl {
+		font-size: 2.2rem;
+	}
+
+	html #ak-stage .ak-tile__cn-big {
+		font-size: 1.7rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html #ak-stage .ak-cluster {
+		transform: none !important;
+	}
+}
+
+/* ===================================================================
+   终端卡数值 / 装饰元素（从废弃清理中恢复）
+   =================================================================== */
+html #ak-stage .ak-tile__num {
+	font-family: var(--ak-mono, monospace);
+	font-size: 3.6rem;
+	font-weight: 900;
+	line-height: 0.9;
+	color: #ffb347;
+	text-shadow: 0 0 28px rgba(255, 140, 40, 0.75);
+}
+
+html #ak-stage .ak-tile__unit {
+	margin-top: 0.35rem;
+	font-size: 0.82rem;
+	letter-spacing: 0.12em;
+	color: rgba(255, 200, 150, 0.75);
+}
+
+html #ak-stage .ak-tile__hero-line {
+	margin-top: 0.6rem;
+	font-size: 0.92rem;
+	letter-spacing: 0.1em;
+	color: rgba(255, 255, 255, 0.62);
+}
+
+html #ak-stage .ak-tile__burst {
+	position: absolute;
+	right: 8%;
+	top: 50%;
+	width: 64px;
+	height: 64px;
+	transform: translateY(-50%) rotate(45deg);
+	background: linear-gradient(135deg, #ff8a2b, #ffb347);
+	clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+	opacity: 0.8;
+	filter: drop-shadow(0 0 16px rgba(255, 140, 40, 0.6));
+}
+
+/* ===================================================================
+   关于我融合卡：左文字 + 右数字（原关于我 + 终端的合并）
+   =================================================================== */
+html #ak-stage .ak-tile--about-hero {
+	justify-content: center;
+	padding: 1.1rem 1.5rem;
+}
+
+html #ak-stage .ak-about-split {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1.2rem;
+	width: 100%;
+}
+
+html #ak-stage .ak-about-split__left {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+html #ak-stage .ak-about-split__right {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	flex-shrink: 0;
+	padding-left: 1.4rem;
+	border-left: 1px solid rgba(43, 179, 255, 0.28);
+}
+
+/* 融合卡占满整行 */
+html #ak-stage .ak-row--1 {
+	min-height: 210px;
+}
+
+html #ak-stage .ak-row--1 .ak-tile--about-hero {
+	flex: 1 1 100%;
+}
+
+/* ===================================================================
+   静态卡（不可点击）：去掉手型光标与悬浮反馈
+   =================================================================== */
+html #ak-stage .ak-tile--static {
+	cursor: default !important;
+	user-select: none;
+}
+
+html #ak-stage .ak-tile--static:hover {
+	transform: none !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+		0 6px 20px rgba(0, 0, 0, 0.4) !important;
+	z-index: auto !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile--static:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(20, 40, 70, 0.14),
+		0 4px 12px rgba(20, 40, 70, 0.1) !important;
+}
+
+/* 静态卡内容略微降低对比，暗示不可交互 */
+html #ak-stage .ak-tile--static .ak-tile__cn-big {
+	opacity: 0.82;
+}
+
+html #ak-stage .ak-tile--static .ak-tile__en-sub {
+	opacity: 0.7;
+}
+
+html #ak-stage .ak-tile--static .ak-tile__emblem {
+	opacity: 0.55;
+}
+
+/* 窄屏：融合卡改为上下排列 */
+@media (max-width: 767.98px) {
+	html #ak-stage .ak-about-split {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.6rem;
+	}
+
+	html #ak-stage .ak-about-split__right {
+		align-items: flex-start;
+		padding-left: 0;
+		padding-top: 0.6rem;
+		border-left: none;
+		border-top: 1px solid rgba(43, 179, 255, 0.28);
+		width: 100%;
+	}
+}
+/* ===================================================================
+   修正：关于我融合卡 —— 数字往左靠 + 底部卡恢复可点击
+   =================================================================== */
+
+/* 融合卡：左文字固定，右侧数字区收窄并靠近中线 */
+html #ak-stage .ak-about-split {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 2.2rem;
+	width: 100%;
+}
+
+html #ak-stage .ak-about-split__left {
+	flex: 0 1 auto;
+	max-width: 44%;
+}
+
+html #ak-stage .ak-about-split__right {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	flex: 0 0 auto;
+	padding-left: 1.6rem;
+	border-left: 1px solid rgba(43, 179, 255, 0.3);
+}
+
+/* 数字略缩，避免撑太宽 */
+html #ak-stage .ak-about-split__right .ak-tile__num {
+	font-size: 3rem;
+}
+
+html #ak-stage .ak-about-split__right .ak-tile__unit {
+	font-size: 0.76rem;
+}
+
+/* 星芒移到右上角，不侵占数字区 */
+html #ak-stage .ak-tile--about-hero .ak-tile__starburst {
+	right: 4%;
+	top: 10%;
+	width: 62px;
+	height: 62px;
+	opacity: 0.8;
+}
+
+/* 底部两张卡恢复可点击样式 */
+html #ak-stage .ak-tile--mission,
+html #ak-stage .ak-tile--reveal {
+	cursor: pointer;
+}
+
+@media (max-width: 767.98px) {
+	html #ak-stage .ak-about-split {
+		flex-direction: row;
+		gap: 1rem;
+	}
+
+	html #ak-stage .ak-about-split__left {
+		max-width: 56%;
+	}
+
+	html #ak-stage .ak-about-split__right {
+		flex-direction: row;
+		align-items: baseline;
+		gap: 0.4rem;
+		padding-left: 1rem;
+	}
+}
+/* ===================================================================
+   修正 v2
+   =================================================================== */
+
+/* ---- 1. 修复底部卡片点不了 ----
+   原因：ak-row--4 的 translate Z=-4px 让它在 3D 空间后退，
+   落在容器平面之下，被 .ak-cluster 的绘制层盖住。
+   解决：改用普通 2D 位移，不再用 3D translate。 */
+@media (min-width: 1024px) {
+	html #ak-stage .ak-row--4 {
+		translate: none !important;
+		transform: translateY(4px) !important;
+	}
+
+	html #ak-stage .ak-row--3 {
+		translate: none !important;
+		transform: translateY(-2px) !important;
+	}
+
+	html #ak-stage .ak-row--2 {
+		translate: none !important;
+		transform: translateY(-4px) !important;
+	}
+
+	html #ak-stage .ak-row--1 {
+		translate: none !important;
+		transform: translateY(-6px) !important;
+	}
+}
+
+/* 所有卡片提升到容器之上，确保可点击 */
+html #ak-stage .ak-cluster .ak-tile {
+	position: relative !important;
+	z-index: 2;
+}
+
+html #ak-stage .ak-cluster .ak-tile:hover {
+	z-index: 10;
+}
+
+/* ---- 2. 融合卡：数字往右放一点，但完整显示 ---- */
+html #ak-stage .ak-about-split {
+	justify-content: flex-start;
+	gap: 3.4rem;
+	padding-right: 5.5rem;
+}
+
+html #ak-stage .ak-about-split__left {
+	flex: 0 0 auto;
+	max-width: none;
+}
+
+html #ak-stage .ak-about-split__right {
+	flex: 0 0 auto;
+	align-items: flex-start;
+	padding-left: 1.8rem;
+}
+
+html #ak-stage .ak-about-split__right .ak-tile__num {
+	font-size: 3.2rem;
+	line-height: 1;
+}
+
+html #ak-stage .ak-about-split__right .ak-tile__unit {
+	font-size: 0.78rem;
+	margin-top: 0.3rem;
+	white-space: nowrap;
+}
+
+/* ---- 3. 星星下移，不再被卡片上沿裁掉 ---- */
+html #ak-stage .ak-tile--about-hero {
+	overflow: visible;
+	padding-top: 1.4rem;
+}
+
+html #ak-stage .ak-tile--about-hero .ak-tile__starburst {
+	position: absolute;
+	right: 2.5rem;
+	top: 1.6rem;
+	width: 58px;
+	height: 58px;
+	opacity: 0.85;
+	z-index: 1;
+}
+
+/* 融合卡内部内容压住星星，避免重叠 */
+html #ak-stage .ak-about-split {
+	position: relative;
+	z-index: 2;
+}
+
+/* 窄屏 */
+@media (max-width: 767.98px) {
+	html #ak-stage .ak-about-split {
+		gap: 1rem;
+		padding-right: 3rem;
+	}
+	html #ak-stage .ak-tile--about-hero .ak-tile__starburst {
+		width: 40px;
+		height: 40px;
+		right: 1rem;
+		top: 1rem;
+	}
+}
+/* ===================================================================
+   修正 v3：彻底解决遮挡
+   原因：行容器的 transform 创建了独立层叠上下文，
+        父级 .ak-cluster 的绘制顺序反而盖住了子卡片。
+   解决：去掉行容器的 transform / translate，只靠 3D 容器的整体倾斜。
+   =================================================================== */
+@media (min-width: 1024px) {
+	html #ak-stage .ak-row,
+	html #ak-stage .ak-row--1,
+	html #ak-stage .ak-row--2,
+	html #ak-stage .ak-row--3,
+	html #ak-stage .ak-row--4 {
+		translate: none !important;
+		transform: none !important;
+	}
+}
+
+/* 行容器不做层叠，卡片自己决定层级 */
+html #ak-stage .ak-row {
+	position: relative;
+	z-index: auto;
+}
+
+html #ak-stage .ak-row3-right {
+	position: relative;
+	z-index: auto;
+}
+
+/* 所有卡片统一抬升 */
+html #ak-stage .ak-cluster .ak-tile {
+	position: relative !important;
+	z-index: 3 !important;
+}
+
+html #ak-stage .ak-cluster .ak-tile:hover {
+	z-index: 20 !important;
+}
+
+/* 融合卡数字区：再靠近中线 */
+html #ak-stage .ak-about-split {
+	gap: 2.6rem;
+	padding-right: 6rem;
+}
+
+/* 星星：下移到卡片内部，完全不碰边 */
+html #ak-stage .ak-tile--about-hero .ak-tile__starburst {
+	top: 2rem;
+	right: 2.2rem;
+	width: 54px;
+	height: 54px;
+}
+/* ===================================================================
+   可读性修正：拉开明度层次，让重点跳出来
+   问题：卡片底色 (#0a0806 等) 比页面背景 (#0b0d10) 还暗，糊成一片
+   目标：背景 4% → 卡片 12~18% → 强调 60~85%，形成清晰三级
+   =================================================================== */
+
+/* ---- 1. 页面背景压暗，衬托卡片 ---- */
+html.dark body {
+	background: #08090b !important;
+}
+
+/* 背景纹理降低存在感，不跟内容抢 */
+html.dark body::after {
+	opacity: 0.32 !important;
+}
+
+html.dark #ak-stripes {
+	opacity: 0.28 !important;
+}
+
+/* ---- 2. 所有卡片底色上提一档，建立边界 ---- */
+html.dark #ak-stage .ak-tile--squad {
+	background:
+		radial-gradient(ellipse 70% 70% at 78% 50%, rgba(255, 180, 60, 0.16), transparent 66%),
+		linear-gradient(140deg, #2c2416 0%, #1a1510 100%) !important;
+}
+
+html.dark #ak-stage .ak-tile--operator {
+	background:
+		radial-gradient(ellipse 70% 70% at 78% 50%, rgba(255, 200, 80, 0.18), transparent 66%),
+		linear-gradient(140deg, #2a2418 0%, #191510 100%) !important;
+}
+
+html.dark #ak-stage .ak-tile--purchase {
+	background:
+		radial-gradient(ellipse 75% 75% at 30% 45%, rgba(170, 120, 255, 0.35), transparent 68%),
+		linear-gradient(140deg, #3a2668 0%, #1e1438 100%) !important;
+}
+
+html.dark #ak-stage .ak-tile--recruit-head {
+	background: linear-gradient(135deg, #c92a2f 0%, #8a181c 100%) !important;
+}
+
+html.dark #ak-stage .ak-tile--headhunt {
+	background:
+		radial-gradient(ellipse 70% 70% at 72% 50%, rgba(70, 165, 255, 0.3), transparent 66%),
+		linear-gradient(140deg, #1e3557 0%, #101c2e 100%) !important;
+}
+
+html.dark #ak-stage .ak-tile--mission {
+	background:
+		radial-gradient(ellipse 70% 70% at 72% 50%, rgba(255, 150, 70, 0.2), transparent 66%),
+		linear-gradient(140deg, #33240f 0%, #1c1409 100%) !important;
+}
+
+html.dark #ak-stage .ak-tile--reveal {
+	background:
+		radial-gradient(ellipse 75% 70% at 82% 30%, rgba(255, 205, 110, 0.24), transparent 66%),
+		linear-gradient(140deg, #3a2b16 0%, #1e170c 100%) !important;
+}
+
+/* 融合卡：深蓝但更亮，确立为最高层级 */
+html.dark #ak-stage .ak-tile--about-hero {
+	background:
+		radial-gradient(ellipse 80% 70% at 85% 15%, rgba(43, 179, 255, 0.28), transparent 64%),
+		radial-gradient(ellipse 60% 60% at 0% 100%, rgba(130, 90, 255, 0.18), transparent 62%),
+		linear-gradient(150deg, #12293f 0%, #0c1826 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(43, 179, 255, 0.5),
+		inset 0 1px 0 rgba(255, 255, 255, 0.18),
+		0 10px 30px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* ---- 3. 卡片描边加强，边界清晰 ---- */
+html.dark #ak-stage .ak-cluster .ak-tile {
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+		inset 0 1px 0 rgba(255, 255, 255, 0.08),
+		0 6px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ---- 4. 文字对比全面提升 ---- */
+html.dark #ak-stage .ak-tile__cn-xl {
+	color: #ffffff;
+	text-shadow: 0 2px 16px rgba(0, 0, 0, 0.8);
+}
+
+html.dark #ak-stage .ak-tile__cn-big {
+	color: #ffffff;
+	text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
+html.dark #ak-stage .ak-tile__cn-mid {
+	color: #ffffff;
+}
+
+html.dark #ak-stage .ak-tile__en-sub {
+	color: rgba(255, 255, 255, 0.92);
+}
+
+html.dark #ak-stage .ak-tile__en-tiny {
+	color: rgba(255, 255, 255, 0.72);
+}
+
+html.dark #ak-stage .ak-tile__hero-line {
+	color: rgba(255, 255, 255, 0.78);
+}
+
+html.dark #ak-stage .ak-tile__unit {
+	color: rgba(255, 205, 150, 0.9);
+}
+
+/* 数字更亮 */
+html.dark #ak-stage .ak-about-split__right .ak-tile__num {
+	color: #ffc266;
+	text-shadow: 0 0 26px rgba(255, 150, 50, 0.7);
+}
+
+/* ---- 5. 装饰收敛：徽记缩小变淡，不抢文字 ---- */
+html.dark #ak-stage .ak-tile__emblem {
+	width: 34px;
+	height: 34px;
+	opacity: 0.55;
+}
+
+html.dark #ak-stage .ak-tile__starburst {
+	width: 46px;
+	height: 46px;
+	opacity: 0.55;
+}
+
+/* ---- 6. 左侧文章卡也提亮，保持整页一致 ---- */
+html.dark #ak-stage .ak-post {
+	background-image:
+		radial-gradient(ellipse 70% 60% at 0% 0%, rgba(43, 179, 255, 0.09), transparent 58%),
+		linear-gradient(160deg, #1a222b 0%, #12181e 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.13),
+		0 6px 18px rgba(0, 0, 0, 0.45) !important;
+}
+
+html.dark #ak-stage .ak-post__title,
+html.dark #ak-stage .ak-post h3 {
+	color: #ffffff !important;
+}
+
+html.dark #ak-stage .ak-post__text,
+html.dark #ak-stage .ak-post p {
+	color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* ---- 7. 亮色主题同步加强对比 ---- */
+html:not(.dark) #ak-stage .ak-tile__cn-xl,
+html:not(.dark) #ak-stage .ak-tile__cn-big,
+html:not(.dark) #ak-stage .ak-tile__cn-mid {
+	color: #ffffff;
+}
+
+html:not(.dark) #ak-stage .ak-cluster .ak-tile {
+	box-shadow:
+		inset 0 0 0 1px rgba(20, 40, 70, 0.18),
+		0 3px 6px rgba(20, 40, 70, 0.09),
+		0 10px 24px rgba(20, 40, 70, 0.1) !important;
+}
+/* ===================================================================
+   统一配色：深蓝灰底 + 白字，只靠明度差区分层级
+   =================================================================== */
+
+/* 所有卡片统一底色 */
+html.dark #ak-stage .ak-cluster .ak-tile,
+html.dark #ak-stage .ak-tile--squad,
+html.dark #ak-stage .ak-tile--operator,
+html.dark #ak-stage .ak-tile--purchase,
+html.dark #ak-stage .ak-tile--recruit-head,
+html.dark #ak-stage .ak-tile--headhunt,
+html.dark #ak-stage .ak-tile--mission,
+html.dark #ak-stage .ak-tile--reveal {
+	background-color: #141c25 !important;
+	background-image:
+		linear-gradient(160deg, #1b2530 0%, #111820 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+		inset 0 1px 0 rgba(255, 255, 255, 0.09),
+		0 6px 20px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* 「关于我」：同一色系，但更亮一档，确立最高层级 */
+html.dark #ak-stage .ak-tile--about-hero {
+	background-color: #1a2734 !important;
+	background-image:
+		radial-gradient(ellipse 85% 80% at 88% 12%, rgba(43, 179, 255, 0.16), transparent 64%),
+		linear-gradient(160deg, #203040 0%, #14202c 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(43, 179, 255, 0.55),
+		inset 0 1px 0 rgba(255, 255, 255, 0.14),
+		0 10px 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 「动态」：保留一个红色强调点 */
+html.dark #ak-stage .ak-tile--recruit-head {
+	background-color: #1a222c !important;
+	background-image: linear-gradient(160deg, #1e2833 0%, #121a23 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 90, 90, 0.42),
+		inset 0 1px 0 rgba(255, 255, 255, 0.09),
+		0 6px 20px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* 动态卡的小红标保留 */
+html.dark #ak-stage .ak-tile--recruit-head .ak-tile__tag {
+	background: #d63319;
+}
+
+/* 徽记统一成中性冷色，不再各自配色 */
+html.dark #ak-stage .ak-tile__emblem {
+	background: linear-gradient(135deg, rgba(120, 190, 245, 0.9), rgba(60, 130, 190, 0.85)) !important;
+	opacity: 0.5;
+}
+
+html.dark #ak-stage .ak-tile--purchase .ak-tile__emblem {
+	background: linear-gradient(135deg, rgba(120, 190, 245, 0.9), rgba(60, 130, 190, 0.85)) !important;
+	opacity: 0.5;
+}
+
+/* 星芒统一冷白 */
+html.dark #ak-stage .ak-tile__starburst {
+	background: rgba(200, 230, 255, 0.75) !important;
+	filter: drop-shadow(0 0 18px rgba(43, 179, 255, 0.5));
+	opacity: 0.5;
+}
+
+/* 数字统一冷白 */
+html.dark #ak-stage .ak-about-split__right .ak-tile__num {
+	color: #dceeff;
+	text-shadow: 0 0 28px rgba(43, 179, 255, 0.55);
+}
+
+html.dark #ak-stage .ak-tile__unit {
+	color: rgba(200, 228, 255, 0.72);
+}
+
+/* 文字全部统一白 */
+html.dark #ak-stage .ak-tile__cn-xl,
+html.dark #ak-stage .ak-tile__cn-big,
+html.dark #ak-stage .ak-tile__cn-mid {
+	color: #ffffff !important;
+	text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+}
+
+html.dark #ak-stage .ak-tile__en-sub {
+	color: rgba(220, 235, 250, 0.92) !important;
+}
+
+html.dark #ak-stage .ak-tile__en-tiny {
+	color: rgba(200, 220, 240, 0.7) !important;
+}
+
+html.dark #ak-stage .ak-tile__hero-line {
+	color: rgba(210, 228, 245, 0.82) !important;
+}
+
+/* 分隔线统一冷色 */
+html.dark #ak-stage .ak-about-split__right {
+	border-left-color: rgba(43, 179, 255, 0.35);
+}
+
+/* 悬停：统一冷色发光 */
+html.dark #ak-stage .ak-cluster .ak-tile:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(43, 179, 255, 0.75),
+		0 14px 38px rgba(0, 0, 0, 0.62),
+		0 0 0 3px rgba(43, 179, 255, 0.14) !important;
+}
+
+/* ---- 左侧文章卡同步统一 ---- */
+html.dark #ak-stage .ak-post {
+	background-image:
+		linear-gradient(160deg, #1b2530 0%, #111820 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+		inset 0 1px 0 rgba(255, 255, 255, 0.07),
+		0 6px 18px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ---- 亮色主题同步统一（浅蓝灰）---- */
+html:not(.dark) #ak-stage .ak-cluster .ak-tile,
+html:not(.dark) #ak-stage .ak-tile--squad,
+html:not(.dark) #ak-stage .ak-tile--operator,
+html:not(.dark) #ak-stage .ak-tile--purchase,
+html:not(.dark) #ak-stage .ak-tile--recruit-head,
+html:not(.dark) #ak-stage .ak-tile--headhunt,
+html:not(.dark) #ak-stage .ak-tile--mission,
+html:not(.dark) #ak-stage .ak-tile--reveal {
+	background-color: #f6f9fc !important;
+	background-image: linear-gradient(160deg, #ffffff 0%, #eef4fa 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(20, 40, 70, 0.16),
+		inset 0 2px 0 #ffffff,
+		0 3px 8px rgba(20, 40, 70, 0.08),
+		0 10px 24px rgba(20, 40, 70, 0.09) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile--about-hero {
+	background-color: #eef5fc !important;
+	background-image:
+		radial-gradient(ellipse 85% 80% at 88% 12%, rgba(47, 127, 214, 0.13), transparent 64%),
+		linear-gradient(160deg, #f8fbff 0%, #e6f0fa 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(47, 127, 214, 0.42),
+		inset 0 2px 0 #ffffff,
+		0 6px 16px rgba(20, 40, 70, 0.1),
+		0 16px 36px rgba(20, 40, 70, 0.1) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__cn-xl,
+html:not(.dark) #ak-stage .ak-tile__cn-big,
+html:not(.dark) #ak-stage .ak-tile__cn-mid {
+	color: #101c2a !important;
+	text-shadow: none;
+}
+
+html:not(.dark) #ak-stage .ak-tile__en-sub {
+	color: rgba(30, 50, 75, 0.8) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__en-tiny {
+	color: rgba(30, 50, 75, 0.62) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__hero-line {
+	color: rgba(30, 50, 75, 0.7) !important;
+}
+
+html:not(.dark) #ak-stage .ak-about-split__right .ak-tile__num {
+	color: #1f5fa8 !important;
+	text-shadow: none;
+}
+
+html:not(.dark) #ak-stage .ak-tile__unit {
+	color: rgba(31, 95, 168, 0.85) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__emblem {
+	background: linear-gradient(135deg, #6aa8dd, #3376b8) !important;
+	opacity: 0.55;
+}
+
+html:not(.dark) #ak-stage .ak-tile--purchase .ak-tile__emblem {
+	background: linear-gradient(135deg, #6aa8dd, #3376b8) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__starburst {
+	background: rgba(47, 127, 214, 0.55) !important;
+	filter: none;
+	opacity: 0.55;
+}
+
+html:not(.dark) #ak-stage .ak-cluster .ak-tile:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(47, 127, 214, 0.6),
+		inset 0 2px 0 #ffffff,
+		0 10px 26px rgba(20, 40, 70, 0.16) !important;
+}
+/* ===================================================================
+   视觉层级重构：用尺寸 + 明度 + 留白拉开差距，让人一眼抓住重点
+   =================================================================== */
+
+/* ---- 1. 尺寸差异拉大 ----
+   之前：176 / 210 / 232px，相差不大
+   现在：主卡 300px，次级 150px，最小 120px —— 两倍差 ---- */
+html #ak-stage .ak-row--1 {
+	min-height: 300px !important;
+}
+
+html #ak-stage .ak-row--2 {
+	min-height: 150px !important;
+}
+
+html #ak-stage .ak-row--3 {
+	min-height: 150px !important;
+}
+
+html #ak-stage .ak-row--4 {
+	min-height: 128px !important;
+}
+
+/* ---- 2. 主卡：字号再放大，占据视觉中心 ---- */
+html #ak-stage .ak-tile__cn-xl {
+	font-size: 4.2rem !important;
+	font-weight: 900 !important;
+	letter-spacing: 0.02em !important;
+	line-height: 1 !important;
+}
+
+html #ak-stage .ak-about-split__right .ak-tile__num {
+	font-size: 4rem !important;
+	font-weight: 900 !important;
+}
+
+/* 高级卡副标题也放大 */
+html #ak-stage .ak-tile__hero-line {
+	font-size: 1.02rem !important;
+	letter-spacing: 0.14em !important;
+}
+
+html #ak-stage .ak-tile--about-hero .ak-tile__en-sub {
+	font-size: 0.94rem !important;
+	letter-spacing: 0.2em !important;
+}
+
+/* ---- 3. 次级卡：字号适度，不抢主卡 ---- */
+html #ak-stage .ak-row--2 .ak-tile__cn-big,
+html #ak-stage .ak-row--3 .ak-tile__cn-big {
+	font-size: 2.1rem !important;
+}
+
+html #ak-stage .ak-row--3 .ak-tile__cn-mid {
+	font-size: 1.1rem !important;
+}
+
+/* ---- 4. 最末排：最弱，字号最小、对比最低 ---- */
+html #ak-stage .ak-row--4 .ak-tile__cn-big {
+	font-size: 1.6rem !important;
+	font-weight: 700 !important;
+}
+
+html #ak-stage .ak-row--4 .ak-tile__en-sub {
+	font-size: 0.72rem !important;
+}
+
+html.dark #ak-stage .ak-row--4 .ak-tile {
+	background-image: linear-gradient(160deg, #18212a 0%, #0f151c 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.09),
+		0 3px 12px rgba(0, 0, 0, 0.45) !important;
+}
+
+html.dark #ak-stage .ak-row--4 .ak-tile__cn-big {
+	color: rgba(220, 232, 244, 0.78) !important;
+}
+
+/* ---- 5. 主卡：内边距加大 + 更强描边 + 光晕 ---- */
+html #ak-stage .ak-tile--about-hero {
+	padding: 2rem 2.2rem !important;
+}
+
+html.dark #ak-stage .ak-tile--about-hero {
+	box-shadow:
+		inset 0 0 0 1.5px rgba(43, 179, 255, 0.7),
+		inset 0 2px 0 rgba(255, 255, 255, 0.2),
+		0 0 0 1px rgba(43, 179, 255, 0.15),
+		0 18px 48px rgba(0, 0, 0, 0.65),
+		0 0 60px rgba(43, 179, 255, 0.1) !important;
+}
+
+/* ---- 6. 行间距拉开，形成呼吸节奏 ---- */
+html #ak-stage .ak-cluster {
+	gap: 1.15rem !important;
+}
+
+html #ak-stage .ak-row {
+	gap: 1.15rem !important;
+}
+
+/* ---- 7. 弱化装饰，避免干扰主卡 ---- */
+html.dark #ak-stage .ak-row--2 .ak-tile__emblem,
+html.dark #ak-stage .ak-row--3 .ak-tile__emblem,
+html.dark #ak-stage .ak-row--4 .ak-tile__emblem {
+	opacity: 0.32 !important;
+	width: 28px !important;
+	height: 28px !important;
+}
+
+html.dark #ak-stage .ak-tile--about-hero .ak-tile__starburst {
+	width: 64px !important;
+	height: 64px !important;
+	opacity: 0.7 !important;
+}
+
+/* ---- 8. 亮色主题同步 ----
+   主卡更深一档形成对比（暗色系主卡更亮，亮色系主卡更"重"） */
+html:not(.dark) #ak-stage .ak-tile--about-hero {
+	background-image:
+		radial-gradient(ellipse 85% 80% at 88% 12%, rgba(47, 127, 214, 0.18), transparent 64%),
+		linear-gradient(160deg, #e8f2fd 0%, #d4e6f8 100%) !important;
+	box-shadow:
+		inset 0 0 0 1.5px rgba(47, 127, 214, 0.6),
+		inset 0 2px 0 #ffffff,
+		0 8px 20px rgba(20, 40, 70, 0.14),
+		0 20px 44px rgba(20, 40, 70, 0.12) !important;
+}
+
+html:not(.dark) #ak-stage .ak-row--4 .ak-tile {
+	opacity: 0.92;
+}
+
+/* ---- 9. 小屏等比缩放 ---- */
+@media (max-width: 1023.98px) {
+	html #ak-stage .ak-row--1 {
+		min-height: 220px !important;
+	}
+
+	html #ak-stage .ak-tile__cn-xl {
+		font-size: 2.8rem !important;
+	}
+
+	html #ak-stage .ak-about-split__right .ak-tile__num {
+		font-size: 2.6rem !important;
+	}
+
+	html #ak-stage .ak-row--2 .ak-tile__cn-big,
+	html #ak-stage .ak-row--3 .ak-tile__cn-big {
+		font-size: 1.7rem !important;
+	}
+}
+/* ===================================================================
+   主题质感重构 v2
+   亮色：压暗底色 + 暖灰调 + 纸张纹理，去掉刺眼的纯白
+   暗色：提亮卡片 + 冷调色阶 + 玻璃质感，去掉死黑
+   =================================================================== */
+
+/* ==========================================================
+   亮色主题：从"刺眼纯白"改为"温润纸感"
+   ========================================================== */
+
+/* ---- 1. 页面底色：冷灰蓝，降低亮度 ---- */
+html:not(.dark) body {
+	background:
+		radial-gradient(ellipse 85% 55% at 12% 0%, #eef3f9 0%, transparent 58%),
+		radial-gradient(ellipse 70% 50% at 92% 100%, #e4ecf6 0%, transparent 60%),
+		linear-gradient(168deg, #f0f4f9 0%, #e8eef6 46%, #e2eaf3 100%) !important;
+}
+
+/* ---- 2. 背景纹理：细密网格 + 斜纹，增加纸张感 ---- */
+html:not(.dark) body::before {
+	background-image:
+		radial-gradient(ellipse 60% 50% at 16% 6%, rgba(47, 127, 214, 0.1), transparent 60%),
+		radial-gradient(ellipse 55% 45% at 88% 92%, rgba(120, 170, 220, 0.11), transparent 60%),
+		linear-gradient(rgba(30, 55, 85, 0.055) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(30, 55, 85, 0.055) 1px, transparent 1px) !important;
+	background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px !important;
+}
+
+html:not(.dark) body::after {
+	opacity: 0.55 !important;
+	background-image:
+		repeating-linear-gradient(115deg, rgba(30, 55, 85, 0.035) 0 1px, transparent 1px 64px),
+		repeating-linear-gradient(0deg, rgba(30, 55, 85, 0.028) 0 1px, transparent 1px 4px) !important;
+}
+
+html:not(.dark) #ak-stripes {
+	opacity: 0.45 !important;
+	background-image:
+		linear-gradient(135deg, transparent 46%, rgba(47, 127, 214, 0.07) 46% 54%, transparent 54%),
+		linear-gradient(135deg, transparent 14%, rgba(30, 55, 85, 0.04) 14% 15%, transparent 15%) !important;
+}
+
+/* ---- 3. 顶栏：磨砂玻璃感 ---- */
+html:not(.dark) #top-row {
+	background: rgba(244, 248, 252, 0.82) !important;
+	backdrop-filter: blur(14px) saturate(1.5);
+	-webkit-backdrop-filter: blur(14px) saturate(1.5);
+	box-shadow:
+		0 1px 0 rgba(30, 55, 85, 0.07),
+		0 6px 20px rgba(30, 55, 85, 0.06) !important;
+}
+
+/* ---- 4. Hero：柔光 + 玻璃 ---- */
+html:not(.dark) #ak-hero {
+	background:
+		radial-gradient(ellipse 65% 70% at 90% 45%, rgba(47, 127, 214, 0.14), transparent 62%),
+		radial-gradient(ellipse 55% 60% at 6% 0%, rgba(150, 195, 240, 0.16), transparent 58%),
+		linear-gradient(155deg, #f8fbff 0%, #eef5fc 48%, #e6eff9 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(30, 55, 85, 0.09),
+		inset 0 2px 0 #ffffff,
+		0 4px 14px rgba(30, 55, 85, 0.07),
+		0 16px 40px rgba(30, 55, 85, 0.08) !important;
+}
+
+/* ---- 5. 卡片：微弱纸感 + 顶部高光带 ---- */
+html:not(.dark) #ak-stage .ak-cluster .ak-tile,
+html:not(.dark) #ak-stage .ak-post {
+	background-image:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, transparent 22%),
+		repeating-linear-gradient(135deg, rgba(30, 55, 85, 0.018) 0 1px, transparent 1px 5px),
+		linear-gradient(160deg, #ffffff 0%, #f2f7fc 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(30, 55, 85, 0.1),
+		inset 0 1.5px 0 #ffffff,
+		0 1px 2px rgba(30, 55, 85, 0.05),
+		0 4px 10px rgba(30, 55, 85, 0.055),
+		0 14px 30px rgba(30, 55, 85, 0.055) !important;
+}
+
+/* 主卡：略深，形成层级 */
+html:not(.dark) #ak-stage .ak-tile--about-hero {
+	background-image:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, transparent 26%),
+		radial-gradient(ellipse 85% 80% at 88% 12%, rgba(47, 127, 214, 0.13), transparent 64%),
+		linear-gradient(160deg, #f2f8fe 0%, #e2eefa 100%) !important;
+	box-shadow:
+		inset 0 0 0 1.5px rgba(47, 127, 214, 0.42),
+		inset 0 2px 0 #ffffff,
+		0 3px 8px rgba(30, 55, 85, 0.08),
+		0 12px 28px rgba(30, 55, 85, 0.1),
+		0 24px 52px rgba(30, 55, 85, 0.08) !important;
+}
+
+/* 末级卡：再压暗一档 */
+html:not(.dark) #ak-stage .ak-row--4 .ak-tile {
+	background-image:
+		repeating-linear-gradient(135deg, rgba(30, 55, 85, 0.02) 0 1px, transparent 1px 5px),
+		linear-gradient(160deg, #f7fafd 0%, #ebf2f9 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(30, 55, 85, 0.09),
+		0 1px 3px rgba(30, 55, 85, 0.05) !important;
+}
+
+/* ==========================================================
+   暗色主题：从"死黑"改为"深蓝灰玻璃"
+   ========================================================== */
+
+/* ---- 1. 页面底色：带蓝调，不再纯黑 ---- */
+html.dark body {
+	background:
+		radial-gradient(ellipse 80% 55% at 10% 0%, #0e1620 0%, transparent 58%),
+		radial-gradient(ellipse 65% 50% at 90% 100%, #0d141c 0%, transparent 60%),
+		linear-gradient(168deg, #0a1017 0%, #0c131a 50%, #0b1118 100%) !important;
+}
+
+/* ---- 2. 背景纹理：冷蓝细网格 ---- */
+html.dark body::before {
+	background-image:
+		radial-gradient(ellipse 55% 45% at 14% 6%, rgba(43, 179, 255, 0.09), transparent 60%),
+		radial-gradient(ellipse 50% 40% at 90% 92%, rgba(90, 150, 220, 0.07), transparent 60%),
+		linear-gradient(rgba(120, 190, 255, 0.045) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(120, 190, 255, 0.045) 1px, transparent 1px) !important;
+	background-size: 100% 100%, 100% 100%, 34px 34px, 34px 34px !important;
+}
+
+/* ---- 3. 卡片：玻璃质感 + 顶部反光 ---- */
+html.dark #ak-stage .ak-cluster .ak-tile,
+html.dark #ak-stage .ak-post {
+	background-image:
+		linear-gradient(180deg, rgba(160, 210, 255, 0.07) 0%, transparent 26%),
+		repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 6px),
+		linear-gradient(160deg, #1e2936 0%, #131b24 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(150, 200, 245, 0.14),
+		inset 0 1.5px 0 rgba(200, 230, 255, 0.12),
+		0 2px 6px rgba(0, 0, 0, 0.45),
+		0 10px 28px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 主卡：更亮 + 冷光边缘 */
+html.dark #ak-stage .ak-tile--about-hero {
+	background-image:
+		linear-gradient(180deg, rgba(160, 215, 255, 0.1) 0%, transparent 30%),
+		radial-gradient(ellipse 85% 80% at 88% 12%, rgba(43, 179, 255, 0.2), transparent 64%),
+		linear-gradient(160deg, #243748 0%, #16232f 100%) !important;
+	box-shadow:
+		inset 0 0 0 1.5px rgba(43, 179, 255, 0.6),
+		inset 0 2px 0 rgba(160, 220, 255, 0.22),
+		0 2px 8px rgba(0, 0, 0, 0.5),
+		0 16px 44px rgba(0, 0, 0, 0.6),
+		0 0 70px rgba(43, 179, 255, 0.08) !important;
+}
+
+/* 末级卡：再暗一档 */
+html.dark #ak-stage .ak-row--4 .ak-tile {
+	background-image:
+		linear-gradient(180deg, rgba(150, 200, 245, 0.05) 0%, transparent 24%),
+		linear-gradient(160deg, #182029 0%, #0f161d 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(150, 200, 245, 0.1),
+		0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ---- 4. 顶栏：深色磨砂 ---- */
+html.dark #top-row {
+	background: rgba(12, 19, 26, 0.85) !important;
+	backdrop-filter: blur(14px) saturate(1.4);
+	-webkit-backdrop-filter: blur(14px) saturate(1.4);
+	box-shadow:
+		0 1px 0 rgba(150, 200, 245, 0.09),
+		0 6px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ---- 5. Hero：冷光玻璃 ---- */
+html.dark #ak-hero {
+	background:
+		radial-gradient(ellipse 65% 70% at 90% 45%, rgba(43, 179, 255, 0.16), transparent 62%),
+		radial-gradient(ellipse 55% 60% at 6% 0%, rgba(60, 130, 200, 0.1), transparent 58%),
+		linear-gradient(155deg, #101d2a 0%, #0b1420 48%, #0a111a 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(150, 200, 245, 0.13),
+		inset 0 2px 0 rgba(160, 220, 255, 0.1),
+		0 4px 16px rgba(0, 0, 0, 0.5),
+		0 18px 44px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ---- 6. 侧栏与文章页卡片统一 ---- */
+html.dark .card-base,
+html.dark #sidebar .card-base,
+html.dark #sidebar-secondary .card-base {
+	background-image: linear-gradient(160deg, #1b2531 0%, #121a23 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(150, 200, 245, 0.12),
+		inset 0 1.5px 0 rgba(200, 230, 255, 0.1),
+		0 4px 16px rgba(0, 0, 0, 0.45) !important;
+}
+
+html:not(.dark) .card-base,
+html:not(.dark) #sidebar .card-base,
+html:not(.dark) #sidebar-secondary .card-base {
+	background-image: linear-gradient(160deg, #ffffff 0%, #f1f6fb 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(30, 55, 85, 0.1),
+		inset 0 1.5px 0 #ffffff,
+		0 2px 6px rgba(30, 55, 85, 0.05),
+		0 8px 20px rgba(30, 55, 85, 0.06) !important;
+}
+
+/* ---- 7. 滚动条质感 ---- */
+html.dark ::-webkit-scrollbar-thumb {
+	background: rgba(120, 180, 235, 0.28);
+	border-radius: 4px;
+}
+
+html:not(.dark) ::-webkit-scrollbar-thumb {
+	background: rgba(30, 55, 85, 0.22);
+	border-radius: 4px;
+}
+
+/* ---- 8. 选中文字 ---- */
+html.dark ::selection {
+	background: rgba(43, 179, 255, 0.32);
+	color: #ffffff;
+}
+
+html:not(.dark) ::selection {
+	background: rgba(47, 127, 214, 0.22);
+	color: #0d1a26;
+}
+/* ===================================================================
+   亮色主题 v3：更柔和 + 更强的纸感与层次
+   思路：
+   1. 底色整体降低对比，加入暖灰过渡（不再冷白光）
+   2. 卡片加入纸张纤维噪点 + 边缘内阴影，模拟实体纸张
+   3. 阴影改用更大的模糊半径 + 更低的透明度，消除"硬边"
+   =================================================================== */
+
+/* ---- 1. 页面底色：降低亮度，加入暖灰过渡 ---- */
+html:not(.dark) body {
+	background:
+		radial-gradient(ellipse 90% 60% at 8% -4%, #f4f2ee 0%, transparent 55%),
+		radial-gradient(ellipse 75% 55% at 95% 102%, #e6ebf2 0%, transparent 58%),
+		linear-gradient(172deg, #eef0f3 0%, #e9edf2 38%, #e3e9f1 72%, #dfe6ef 100%) !important;
+}
+
+/* ---- 2. 背景：更细密的双层网格 + 柔和光斑 ---- */
+html:not(.dark) body::before {
+	background-image:
+		radial-gradient(ellipse 58% 48% at 14% 4%, rgba(47, 127, 214, 0.075), transparent 62%),
+		radial-gradient(ellipse 52% 44% at 90% 94%, rgba(140, 175, 215, 0.09), transparent 62%),
+		linear-gradient(rgba(35, 58, 85, 0.042) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(35, 58, 85, 0.042) 1px, transparent 1px),
+		linear-gradient(rgba(35, 58, 85, 0.022) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(35, 58, 85, 0.022) 1px, transparent 1px) !important;
+	background-size:
+		100% 100%,
+		100% 100%,
+		96px 96px,
+		96px 96px,
+		24px 24px,
+		24px 24px !important;
+}
+
+/* ---- 3. 斜纹层：更淡、更疏 ---- */
+html:not(.dark) body::after {
+	opacity: 0.42 !important;
+	background-image:
+		repeating-linear-gradient(115deg, rgba(35, 58, 85, 0.026) 0 1px, transparent 1px 78px),
+		repeating-linear-gradient(0deg, rgba(35, 58, 85, 0.02) 0 1px, transparent 1px 5px) !important;
+}
+
+html:not(.dark) #ak-stripes {
+	opacity: 0.3 !important;
+	background-image:
+		linear-gradient(135deg, transparent 46%, rgba(47, 127, 214, 0.05) 46% 54%, transparent 54%),
+		linear-gradient(135deg, transparent 14%, rgba(35, 58, 85, 0.028) 14% 15%, transparent 15%) !important;
+}
+
+/* ---- 4. 卡片：纸张质感（纤维 + 内暗边 + 柔和投影）---- */
+html:not(.dark) #ak-stage .ak-cluster .ak-tile,
+html:not(.dark) #ak-stage .ak-post,
+html:not(.dark) .card-base {
+	background-image:
+		/* 顶部受光高光 */
+		linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, transparent 18%),
+		/* 底部微暗，模拟纸张厚度 */
+		linear-gradient(0deg, rgba(190, 205, 222, 0.18) 0%, transparent 12%),
+		/* 斜向纤维 */
+		repeating-linear-gradient(118deg, rgba(60, 85, 115, 0.014) 0 1px, transparent 1px 4px),
+		/* 横向纸纹 */
+		repeating-linear-gradient(0deg, rgba(60, 85, 115, 0.012) 0 1px, transparent 1px 3px),
+		/* 基础色 */
+		linear-gradient(160deg, #fdfdfe 0%, #f7fafd 55%, #f1f6fb 100%) !important;
+	box-shadow:
+		/* 内描边 */
+		inset 0 0 0 1px rgba(40, 62, 90, 0.08),
+		/* 内顶部白边（受光） */
+		inset 0 1.5px 0 #ffffff,
+		/* 内底部暗边（厚度感） */
+		inset 0 -1px 0 rgba(40, 62, 90, 0.04),
+		/* 贴合投影 */
+		0 1px 2px rgba(40, 62, 90, 0.045),
+		/* 近距离柔影 */
+		0 3px 8px rgba(40, 62, 90, 0.045),
+		/* 中距离 */
+		0 8px 18px rgba(40, 62, 90, 0.05),
+		/* 远距离大扩散 */
+		0 18px 40px rgba(40, 62, 90, 0.055) !important;
+}
+
+/* ---- 5. 主卡：更强的纸感与层次 ---- */
+html:not(.dark) #ak-stage .ak-tile--about-hero {
+	background-image:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, transparent 20%),
+		radial-gradient(ellipse 85% 80% at 90% 10%, rgba(47, 127, 214, 0.1), transparent 66%),
+		repeating-linear-gradient(118deg, rgba(60, 85, 115, 0.013) 0 1px, transparent 1px 4px),
+		linear-gradient(160deg, #f6fafe 0%, #e9f2fb 52%, #dfecfa 100%) !important;
+	box-shadow:
+		inset 0 0 0 1.5px rgba(47, 127, 214, 0.34),
+		inset 0 2px 0 #ffffff,
+		inset 0 -1.5px 0 rgba(47, 127, 214, 0.1),
+		0 2px 4px rgba(40, 62, 90, 0.055),
+		0 6px 14px rgba(40, 62, 90, 0.06),
+		0 16px 34px rgba(40, 62, 90, 0.07),
+		0 32px 64px rgba(40, 62, 90, 0.055) !important;
+}
+
+/* ---- 6. 末级卡：更弱，退到背景里 ---- */
+html:not(.dark) #ak-stage .ak-row--4 .ak-tile {
+	background-image:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, transparent 16%),
+		repeating-linear-gradient(118deg, rgba(60, 85, 115, 0.015) 0 1px, transparent 1px 4px),
+		linear-gradient(160deg, #f7f9fc 0%, #eef3f9 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(40, 62, 90, 0.07),
+		inset 0 1px 0 #ffffff,
+		0 1px 2px rgba(40, 62, 90, 0.04),
+		0 4px 10px rgba(40, 62, 90, 0.04) !important;
+}
+
+/* ---- 7. 顶栏：柔和磨砂 ---- */
+html:not(.dark) #top-row {
+	background: rgba(243, 246, 250, 0.72) !important;
+	backdrop-filter: blur(18px) saturate(1.35);
+	-webkit-backdrop-filter: blur(18px) saturate(1.35);
+	box-shadow:
+		0 1px 0 rgba(40, 62, 90, 0.06),
+		0 4px 16px rgba(40, 62, 90, 0.045) !important;
+}
+
+/* ---- 8. Hero：柔光纸感 ---- */
+html:not(.dark) #ak-hero {
+	background:
+		radial-gradient(ellipse 62% 68% at 88% 46%, rgba(47, 127, 214, 0.1), transparent 64%),
+		radial-gradient(ellipse 52% 58% at 6% 0%, rgba(168, 200, 236, 0.14), transparent 58%),
+		repeating-linear-gradient(118deg, rgba(60, 85, 115, 0.012) 0 1px, transparent 1px 5px),
+		linear-gradient(155deg, #fbfcfe 0%, #f3f8fd 48%, #ebf2fa 100%) !important;
+	box-shadow:
+		inset 0 0 0 1px rgba(40, 62, 90, 0.075),
+		inset 0 2px 0 #ffffff,
+		inset 0 -1px 0 rgba(40, 62, 90, 0.04),
+		0 2px 6px rgba(40, 62, 90, 0.045),
+		0 10px 28px rgba(40, 62, 90, 0.06),
+		0 26px 56px rgba(40, 62, 90, 0.05) !important;
+}
+
+/* ---- 9. 文字降低对比，减少刺眼感 ---- */
+html:not(.dark) #ak-stage .ak-tile__cn-xl,
+html:not(.dark) #ak-stage .ak-tile__cn-big,
+html:not(.dark) #ak-stage .ak-tile__cn-mid {
+	color: #17293c !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__en-sub {
+	color: rgba(40, 62, 90, 0.68) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__en-tiny {
+	color: rgba(40, 62, 90, 0.52) !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__hero-line {
+	color: rgba(40, 62, 90, 0.6) !important;
+}
+
+html:not(.dark) #ak-stage .ak-about-split__right .ak-tile__num {
+	color: #2b6cb0 !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__unit {
+	color: rgba(43, 108, 176, 0.72) !important;
+}
+
+/* 分隔线更柔 */
+html:not(.dark) #ak-stage .ak-about-split__right {
+	border-left-color: rgba(47, 127, 214, 0.24) !important;
+}
+
+/* ---- 10. 装饰更含蓄 ---- */
+html:not(.dark) #ak-stage .ak-tile__emblem {
+	background: linear-gradient(135deg, rgba(90, 150, 205, 0.75), rgba(50, 110, 165, 0.7)) !important;
+	opacity: 0.4 !important;
+}
+
+html:not(.dark) #ak-stage .ak-tile__starburst {
+	background: rgba(47, 127, 214, 0.42) !important;
+	opacity: 0.42 !important;
+}
+
+/* ---- 11. 悬停：柔和抬起 ---- */
+html:not(.dark) #ak-stage .ak-cluster .ak-tile:hover {
+	box-shadow:
+		inset 0 0 0 1px rgba(47, 127, 214, 0.42),
+		inset 0 1.5px 0 #ffffff,
+		0 3px 8px rgba(40, 62, 90, 0.07),
+		0 10px 24px rgba(40, 62, 90, 0.09),
+		0 24px 52px rgba(40, 62, 90, 0.08) !important;
+}
+
+/* ---- 12. 侧栏卡片同步 ---- */
+html:not(.dark) #sidebar .card-base,
+html:not(.dark) #sidebar-secondary .card-base {
+	background-image:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, transparent 18%),
+		repeating-linear-gradient(118deg, rgba(60, 85, 115, 0.013) 0 1px, transparent 1px 4px),
+		linear-gradient(160deg, #fcfdfe 0%, #f4f8fc 100%) !important;
+}

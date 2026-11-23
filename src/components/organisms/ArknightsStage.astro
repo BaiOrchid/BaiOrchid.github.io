@@ -1,0 +1,777 @@
+---
+/**
+ * Arknights 首页双栏舞台
+ *
+ * 结构：
+ *   ┌─────────────────── Hero（满宽，不动） ───────────────────┐
+ *   ├────────── 左战区 ─────────┬─ 过渡带 ─┬── 右战区 ────────┤
+ *   │  文章列表（最新记录）      │ 曲面+扫描 │  卡片散列排布    │
+ *   └───────────────────────────┴──────────┴──────────────────┘
+ *
+ * 右栏卡片用绝对定位做「不整齐」的错落布置，过渡带用 SVG 曲面 + 网格扫描线。
+ */
+import PostCard from "@components/organisms/PostCard.astro";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { getPostUrl, url } from "@utils/url-utils";
+import { getSiteStats } from "@utils/site-stats";
+
+interface Props {
+	posts: any[];
+	tagCount?: number;
+	categoryCount?: number;
+	momentCount?: number;
+}
+
+const { posts = [], tagCount = 0, categoryCount = 0, momentCount = 0 } = Astro.props;
+const stats = await getSiteStats();
+const pad = (n: number) => String(Math.min(n, 99)).padStart(2, "0");
+
+// 左栏文章（取前 4 篇）
+const leftPosts = posts.slice(0, 4);
+---
+
+<div id="ak-stage">
+	{/* ============ 左战区：文章记录 ============ */}
+	<section id="ak-left" aria-label="最新记录">
+		<header class="ak-zone-head">
+			<span class="ak-zone-dot"></span>
+			<span class="ak-zone-cn">最新记录</span>
+			<span class="ak-zone-en">LATEST LOG</span>
+			<span class="ak-zone-rule"></span>
+			<span class="ak-zone-idx">EX-01</span>
+		</header>
+
+		<div class="ak-post-stack">
+			{leftPosts.map((entry, i) => (
+				<article class="ak-post" style={`--i: ${i}`}>
+					<span class="ak-post__no">{pad(i + 1)}</span>
+					<div class="ak-post__main">
+						<a class="ak-post__title" href={getPostUrl(entry)}>{entry.data.title}</a>
+						{entry.data.description && (
+							<p class="ak-post__desc">{entry.data.description}</p>
+						)}
+						<div class="ak-post__meta">
+							<span class="ak-post__date">
+								{new Date(entry.data.published).toISOString().slice(0, 10)}
+							</span>
+							{(entry.data.tags ?? []).slice(0, 3).map((t: string) => (
+								<span class="ak-post__tag">{t}</span>
+							))}
+						</div>
+					</div>
+					<span class="ak-post__bar"></span>
+				</article>
+			))}
+		</div>
+
+		<a class="ak-more" href={url("/archive/")}>
+			<span>全部归档</span>
+			<span class="ak-more__en">FULL ARCHIVE</span>
+			<span class="ak-more__arrow">›</span>
+		</a>
+	</section>
+
+	{/* ============ 过渡带：曲面 + 扫描 ============ */}
+	<div id="ak-seam" aria-hidden="true">
+		<svg class="ak-seam__curve" viewBox="0 0 80 1000" preserveAspectRatio="none">
+			<defs>
+				<linearGradient id="akSeamGrad" x1="0" y1="0" x2="0" y2="1">
+					<stop offset="0%" stop-color="#2bb3ff" stop-opacity="0.05" />
+					<stop offset="35%" stop-color="#2bb3ff" stop-opacity="0.55" />
+					<stop offset="70%" stop-color="#2bb3ff" stop-opacity="0.35" />
+					<stop offset="100%" stop-color="#2bb3ff" stop-opacity="0.05" />
+				</linearGradient>
+				<linearGradient id="akSeamFill" x1="0" y1="0" x2="1" y2="0">
+					<stop offset="0%" stop-color="#2bb3ff" stop-opacity="0" />
+					<stop offset="100%" stop-color="#2bb3ff" stop-opacity="0.07" />
+				</linearGradient>
+			</defs>
+			<path
+				class="ak-seam__band"
+				d="M0,0 C34,240 34,760 0,1000 L80,1000 C46,760 46,240 80,0 Z"
+				fill="url(#akSeamFill)"
+			/>
+			<path
+				class="ak-seam__line"
+				d="M40,0 C6,240 6,760 40,1000"
+				fill="none"
+				stroke="url(#akSeamGrad)"
+				stroke-width="1.6"
+			/>
+			<path
+				class="ak-seam__line ak-seam__line--ghost"
+				d="M58,0 C24,240 24,760 58,1000"
+				fill="none"
+				stroke="url(#akSeamGrad)"
+				stroke-width="1"
+			/>
+		</svg>
+
+		{/* 扫描节点 */}
+		<span class="ak-seam__node" style="--node-y: 12%"></span>
+		<span class="ak-seam__node" style="--node-y: 38%"></span>
+		<span class="ak-seam__node" style="--node-y: 64%"></span>
+		<span class="ak-seam__node" style="--node-y: 88%"></span>
+
+		<span class="ak-seam__label" style="--node-y: 26%">SCAN</span>
+		<span class="ak-seam__label" style="--node-y: 76%">LINK</span>
+	</div>
+
+	{/* ============ 右战区：卡片散列 ============ */}
+	<section id="ak-right" aria-label="主菜单">
+		<header class="ak-zone-head ak-zone-head--right">
+			<span class="ak-zone-idx">DM-02</span>
+			<span class="ak-zone-rule"></span>
+			<span class="ak-zone-cn">主菜单</span>
+			<span class="ak-zone-en">SYSTEM</span>
+			<span class="ak-zone-dot"></span>
+		</header>
+
+		<div class="ak-cluster">
+			{/* 行1：关于我（融合终端数据，单张大卡） */}
+			<div class="ak-row ak-row--1">
+				<a class="ak-tile ak-tile--about-hero" href={url("/about/")}>
+					<span class="ak-tile__tag">当前</span>
+					<div class="ak-about-split">
+						<div class="ak-about-split__left">
+							<span class="ak-tile__cn-xl">关于我</span>
+							<span class="ak-tile__en-sub">"ABOUT ME"</span>
+							<span class="ak-tile__hero-line">个人简介 · 联系方式 · 关于本站</span>
+						</div>
+						<div class="ak-about-split__right">
+							<span class="ak-tile__num">{pad(posts.length)}</span>
+							<span class="ak-tile__unit">文章 / POSTS</span>
+						</div>
+					</div>
+					<span class="ak-tile__starburst"></span>
+				</a>
+			</div>
+
+			{/* 行2：归档 + 标签 */}
+			<div class="ak-row ak-row--2">
+				<a class="ak-tile ak-tile--squad" href={url("/archive/")}>
+					<span class="ak-tile__cn-big">归档</span>
+					<span class="ak-tile__en-sub">"ARCHIVES"</span>
+					<span class="ak-tile__emblem"></span>
+				</a>
+				<a class="ak-tile ak-tile--operator" href={url("/tags/")}>
+					<span class="ak-tile__cn-big">标签</span>
+					<span class="ak-tile__en-sub">"TAGS"</span>
+					<span class="ak-tile__emblem"></span>
+				</a>
+			</div>
+
+			{/* 行3：友链 + 动态 + 相册 */}
+			<div class="ak-row ak-row--3">
+				<a class="ak-tile ak-tile--purchase" href={url("/friends/")}>
+					<span class="ak-tile__cn-big">友链</span>
+					<span class="ak-tile__en-sub">"FRIENDS"</span>
+					<span class="ak-tile__emblem"></span>
+				</a>
+				<div class="ak-row3-right">
+					<a class="ak-tile ak-tile--recruit-head" href={url("/moments/")}>
+						<span class="ak-tile__tag">动态</span>
+						<span class="ak-tile__cn-mid">最新动态</span>
+						<span class="ak-tile__en-tiny">MOMENTS</span>
+					</a>
+					<a class="ak-tile ak-tile--headhunt" href={url("/albums/")}>
+						<span class="ak-tile__cn-mid">相册</span>
+						<span class="ak-tile__en-tiny">ALBUMS</span>
+					</a>
+				</div>
+			</div>
+
+			{/* 行4：分类 + GitHub */}
+			<div class="ak-row ak-row--4">
+				<a class="ak-tile ak-tile--mission" href={url("/categories/")}>
+					<span class="ak-tile__cn-big">分类</span>
+					<span class="ak-tile__en-sub">"CATEGORIES"</span>
+					<span class="ak-tile__emblem"></span>
+				</a>
+				<a class="ak-tile ak-tile--reveal" href="https://github.com/BaiOrchid" target="_blank" rel="noopener noreferrer">
+					<span class="ak-tile__cn-big">GitHub</span>
+					<span class="ak-tile__en-sub">CONTACT</span>
+				</a>
+			</div>
+		</div>
+	</section>
+</div>
+
+<style>
+	/* ============================================================
+	   舞台栅格
+	   ============================================================ */
+	#ak-stage {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 92px minmax(0, 1.5fr);
+		align-items: start;
+		gap: 0;
+		margin: 0 0 2rem;
+	}
+
+	/* 分区标题 */
+	.ak-zone-head {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		margin-bottom: 1.1rem;
+		font-family: var(--ak-mono, monospace);
+	}
+
+	.ak-zone-head--right {
+		flex-direction: row-reverse;
+	}
+
+	.ak-zone-dot {
+		width: 6px;
+		height: 6px;
+		background: var(--ak-accent, #2bb3ff);
+		transform: rotate(45deg);
+		box-shadow: 0 0 9px rgba(43, 179, 255, 0.9);
+	}
+
+	.ak-zone-cn {
+		font-size: 0.86rem;
+		letter-spacing: 0.22em;
+		color: var(--on-surface);
+	}
+
+	.ak-zone-en {
+		font-size: 0.56rem;
+		letter-spacing: 0.3em;
+		color: rgba(128, 128, 128, 0.75);
+	}
+
+	.ak-zone-rule {
+		flex: 1;
+		height: 1px;
+		background: linear-gradient(90deg, var(--ak-line), transparent);
+	}
+
+	.ak-zone-head--right .ak-zone-rule {
+		background: linear-gradient(270deg, var(--ak-line), transparent);
+	}
+
+	.ak-zone-idx {
+		font-size: 0.52rem;
+		letter-spacing: 0.2em;
+		color: rgba(128, 128, 128, 0.5);
+	}
+
+	/* ============================================================
+	   左战区：文章堆叠
+	   ============================================================ */
+	#ak-left {
+		min-width: 0;
+		padding-right: 1.1rem;
+	}
+
+	.ak-post-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 0.7rem;
+	}
+
+	.ak-post {
+		position: relative;
+		display: flex;
+		align-items: stretch;
+		gap: 0.9rem;
+		padding: 1.05rem 1.1rem 1.05rem 0.9rem;
+		background-color: var(--ak-panel, #12161a);
+		background-image:
+			repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 18px),
+			repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 18px);
+		box-shadow: inset 0 0 0 1px var(--ak-line);
+		clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+		transition: box-shadow 0.3s;
+
+		/* 错落：偶数条轻微右移 */
+		margin-left: calc((var(--i) % 2) * 0.9rem);
+	}
+
+	.ak-post:hover {
+		box-shadow: inset 0 0 0 1px rgba(43, 179, 255, 0.45);
+	}
+
+	.ak-post__no {
+		flex: 0 0 auto;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.62rem;
+		letter-spacing: 0.1em;
+		color: rgba(128, 128, 128, 0.55);
+		padding-top: 0.2rem;
+	}
+
+	.ak-post__main {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.ak-post__title {
+		display: block;
+		font-size: 1.08rem;
+		line-height: 1.4;
+		letter-spacing: 0.01em;
+		color: var(--on-surface);
+		text-decoration: none;
+		transition: color 0.24s;
+	}
+
+	.ak-post:hover .ak-post__title {
+		color: var(--primary);
+	}
+
+	.ak-post__desc {
+		margin: 0.45rem 0 0;
+		font-size: 0.82rem;
+		line-height: 1.7;
+		color: var(--on-surface-variant);
+	}
+
+	.ak-post__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.4rem;
+		margin-top: 0.65rem;
+	}
+
+	.ak-post__date {
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.64rem;
+		letter-spacing: 0.06em;
+		color: rgba(128, 128, 128, 0.8);
+		margin-right: 0.3rem;
+	}
+
+	.ak-post__tag {
+		padding: 0.05rem 0.4rem;
+		font-size: 0.6rem;
+		color: var(--on-surface-variant);
+		background: var(--ak-accent-soft, rgba(43, 179, 255, 0.08));
+		box-shadow: inset 0 0 0 1px var(--ak-line);
+		clip-path: polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px);
+	}
+
+	.ak-post__bar {
+		flex: 0 0 2px;
+		background: var(--ak-accent, #2bb3ff);
+		opacity: 0.35;
+		transition: opacity 0.3s;
+	}
+
+	.ak-post:hover .ak-post__bar {
+		opacity: 1;
+	}
+
+	/* 全部归档按钮 */
+	.ak-more {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-top: 0.9rem;
+		margin-left: 0.9rem;
+		padding: 0.75rem 1rem;
+		text-decoration: none;
+		color: var(--primary);
+		background: var(--ak-accent-soft, rgba(43, 179, 255, 0.08));
+		box-shadow: inset 0 0 0 1px var(--primary);
+		clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+		transition: background-color 0.25s;
+	}
+
+	.ak-more:hover {
+		background: var(--primary-container);
+	}
+
+	.ak-more__en {
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.55rem;
+		letter-spacing: 0.26em;
+		opacity: 0.6;
+	}
+
+	.ak-more__arrow {
+		margin-left: auto;
+		font-size: 1.1rem;
+	}
+
+	/* ============================================================
+	   过渡带
+	   ============================================================ */
+	#ak-seam {
+		position: relative;
+		align-self: stretch;
+		min-height: 640px;
+		pointer-events: none;
+	}
+
+	.ak-seam__curve {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.ak-seam__line {
+		stroke-dasharray: 6 10;
+		animation: ak-seam-flow 9s linear infinite;
+	}
+
+	@keyframes ak-seam-flow {
+		to {
+			stroke-dashoffset: -160;
+		}
+	}
+
+	.ak-seam__node {
+		position: absolute;
+		left: 50%;
+		top: var(--node-y);
+		width: 7px;
+		height: 7px;
+		margin-left: -3.5px;
+		background: var(--ak-accent, #2bb3ff);
+		transform: rotate(45deg);
+		box-shadow: 0 0 12px rgba(43, 179, 255, 0.85);
+	}
+
+	.ak-seam__node::after {
+		content: "";
+		position: absolute;
+		inset: -5px;
+		border: 1px solid rgba(43, 179, 255, 0.35);
+	}
+
+	.ak-seam__label {
+		position: absolute;
+		left: 50%;
+		top: var(--node-y);
+		transform: translate(-50%, -1.9rem);
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.46rem;
+		letter-spacing: 0.3em;
+		color: rgba(43, 179, 255, 0.55);
+		white-space: nowrap;
+	}
+
+	/* ============================================================
+	   右战区：散列卡片
+	   ============================================================ */
+	#ak-right {
+		min-width: 0;
+		padding-left: 0.4rem;
+	}
+
+	.ak-cluster {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-auto-rows: 132px;
+		gap: 0.75rem;
+	}
+
+	.ak-tile {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		grid-column: span var(--w, 1);
+		grid-row: span var(--h, 1);
+		padding: 0.9rem 1rem;
+		overflow: hidden;
+		text-decoration: none;
+		color: var(--on-surface);
+		background-color: var(--ak-panel, #12161a);
+		background-image:
+			repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 18px),
+			repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 18px);
+		box-shadow: inset 0 0 0 1px var(--ak-line);
+		clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%);
+		transition: box-shadow 0.3s, background-color 0.3s;
+
+		/* 错落：按坐标做微小位移与旋转，制造手摆感 */
+		transform: translate(
+			calc((var(--x) - 1) * 0.35rem),
+			calc((var(--y) - 1.5) * 0.3rem)
+		);
+	}
+
+	.ak-tile:hover {
+		box-shadow: inset 0 0 0 1px rgba(43, 179, 255, 0.5);
+		background-color: var(--ak-panel-2, #171c21);
+	}
+
+	.ak-tile__en {
+		font-size: 0.92rem;
+		letter-spacing: 0.1em;
+		color: var(--on-surface);
+	}
+
+	.ak-tile__cn {
+		margin-top: 0.2rem;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.5rem;
+		letter-spacing: 0.28em;
+		color: var(--on-surface-variant);
+	}
+
+	.ak-tile__kicker,
+	.ak-tile__live {
+		position: absolute;
+		top: 0.7rem;
+		left: 0.9rem;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.52rem;
+		letter-spacing: 0.24em;
+		color: var(--ak-accent, #2bb3ff);
+	}
+
+	.ak-tile__live {
+		padding: 0.05rem 0.32rem;
+		color: #fff;
+		background: #e0392a;
+	}
+
+	.ak-tile__big {
+		font-family: var(--ak-mono, monospace);
+		font-size: 1.9rem;
+		line-height: 1;
+		letter-spacing: 0.02em;
+		color: var(--on-surface);
+	}
+
+	.ak-tile__sub {
+		margin-top: 0.3rem;
+		font-size: 0.52rem;
+		letter-spacing: 0.24em;
+		color: var(--on-surface-variant);
+	}
+
+	.ak-tile__badge {
+		position: absolute;
+		top: 0.6rem;
+		right: 0.7rem;
+		padding: 0.05rem 0.32rem;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.5rem;
+		color: #fff;
+		background: #ff8a2b;
+	}
+
+	/* 终端卡：占满两列 */
+	.ak-tile--terminal {
+		justify-content: center;
+		background-image:
+			radial-gradient(ellipse at 18% 20%, rgba(43, 179, 255, 0.16), transparent 62%),
+			repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 18px);
+	}
+
+	.ak-tile--terminal .ak-tile__big {
+		font-size: 2.6rem;
+	}
+
+	.ak-tile__scanline {
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: 2px;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			rgba(43, 179, 255, 0.55),
+			transparent
+		);
+		animation: ak-scan 5.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+
+	@keyframes ak-scan {
+		0% {
+			top: -2px;
+			opacity: 0;
+		}
+		12% {
+			opacity: 1;
+		}
+		88% {
+			opacity: 1;
+		}
+		100% {
+			top: 100%;
+			opacity: 0;
+		}
+	}
+
+	/* 黄卡 */
+	.ak-tile--yellow {
+		justify-content: flex-end;
+		color: #1b1600;
+		background-color: #ecce35;
+		background-image: linear-gradient(150deg, #f5dd4f 0%, #dcb414 100%);
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+	}
+
+	.ak-tile--yellow .ak-tile__en,
+	.ak-tile--yellow .ak-tile__big {
+		color: #1b1600;
+	}
+
+	.ak-tile--yellow:hover {
+		background-image: linear-gradient(150deg, #ffe867 0%, #e8c020 100%);
+	}
+
+	/* 绿卡 */
+	.ak-tile--green {
+		color: #0d1a05;
+		background-color: #6fb92b;
+		background-image: linear-gradient(150deg, #83cc35 0%, #4f9120 100%);
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+	}
+
+	.ak-tile--green .ak-tile__en,
+	.ak-tile--green .ak-tile__cn {
+		color: #0d1a05;
+	}
+
+	/* 高卡 */
+	.ak-tile--tall {
+		justify-content: flex-start;
+		padding-top: 1rem;
+	}
+
+	.ak-tile--tall .ak-tile__en {
+		margin-top: auto;
+		font-size: 1.02rem;
+	}
+
+	.ak-tile__path {
+		position: absolute;
+		left: 0;
+		bottom: 0;
+		width: 2px;
+		height: 46%;
+		background: linear-gradient(180deg, transparent, var(--primary));
+	}
+
+	.ak-tile--ghost {
+		opacity: 0.62;
+	}
+
+	.ak-tile--ghost:hover {
+		opacity: 1;
+	}
+
+	/* 图标：CSS 几何 */
+	.ak-tile__icon {
+		position: relative;
+		display: block;
+		width: 20px;
+		height: 20px;
+		margin-bottom: auto;
+		opacity: 0.75;
+	}
+
+	.ak-tile__icon::before,
+	.ak-tile__icon::after {
+		content: "";
+		position: absolute;
+		box-sizing: border-box;
+	}
+
+	.ak-tile__icon[data-i="operator"]::before {
+		inset: 0;
+		background: currentColor;
+		clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+		opacity: 0.85;
+	}
+
+	.ak-tile__icon[data-i="operator"]::after {
+		inset: 6px;
+		background: var(--ak-panel, #12161a);
+		clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+	}
+
+	.ak-tile__icon[data-i="base"]::before {
+		inset: 0;
+		background:
+			linear-gradient(currentColor 0 0) 0 0 / 44% 44% no-repeat,
+			linear-gradient(currentColor 0 0) 100% 0 / 44% 44% no-repeat,
+			linear-gradient(currentColor 0 0) 0 100% / 44% 44% no-repeat,
+			linear-gradient(currentColor 0 0) 100% 100% / 44% 44% no-repeat;
+	}
+
+	.ak-tile__icon[data-i="friends"]::before {
+		inset: 2px 8px 2px 0;
+		border: 1.5px solid currentColor;
+		border-radius: 50%;
+	}
+
+	.ak-tile__icon[data-i="friends"]::after {
+		inset: 7px 0 7px 8px;
+		border: 1.5px solid currentColor;
+		border-radius: 50%;
+	}
+
+	/* ============================================================
+	   亮色适配
+	   ============================================================ */
+	:global(html:not(.dark)) .ak-post,
+	:global(html:not(.dark)) .ak-tile {
+		background-color: #ffffff;
+		background-image:
+			repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0 1px, transparent 1px 16px),
+			repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.016) 0 1px, transparent 1px 16px);
+		box-shadow:
+			inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+			0 2px 8px rgba(0, 0, 0, 0.06);
+	}
+
+	/* ============================================================
+	   响应式
+	   ============================================================ */
+	@media (max-width: 1279.98px) {
+		#ak-stage {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+
+		#ak-left {
+			padding-right: 0;
+		}
+
+		#ak-seam {
+			display: none;
+		}
+
+		#ak-right {
+			padding-left: 0;
+		}
+
+		.ak-cluster {
+			grid-auto-rows: 118px;
+		}
+
+		.ak-post {
+			margin-left: 0;
+		}
+	}
+
+	@media (max-width: 767.98px) {
+		.ak-cluster {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-auto-rows: 104px;
+		}
+
+		.ak-tile--terminal {
+			grid-column: span 2;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.ak-seam__line,
+		.ak-tile__scanline {
+			animation: none;
+		}
+	}
+</style>

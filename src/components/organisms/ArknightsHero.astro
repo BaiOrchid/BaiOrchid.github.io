@@ -1,0 +1,298 @@
+---
+/**
+ * Arknights 风格首页 Hero
+ * 固定高度的战术标题区：状态标签 / 大标题 / 副标题 / 数据条 / HUD 角标
+ */
+import rhodesLogo from "@/assets/images/rhodes.png";
+import { siteConfig } from "@/config";
+
+interface Props {
+	postCount?: number;
+	tagCount?: number;
+	categoryCount?: number;
+}
+
+const {
+	postCount = 0,
+	tagCount = 0,
+	categoryCount = 0,
+} = Astro.props;
+
+const title = siteConfig.title;
+const subtitle = siteConfig.subtitle;
+const pad = (n: number) => String(n).padStart(2, "0");
+---
+
+<section id="ak-hero" aria-label={title}>
+	<span class="ak-hero__corner tl"></span>
+	<span class="ak-hero__corner tr"></span>
+	<span class="ak-hero__corner bl"></span>
+	<span class="ak-hero__corner br"></span>
+
+	<div class="ak-hero__logo" aria-hidden="true">
+		<img src={rhodesLogo.src} alt="" width={rhodesLogo.width} height={rhodesLogo.height} loading="eager" />
+	</div>
+
+	<div class="ak-hero__top">
+		<div class="ak-hero__kicker">
+			<span class="ak-hero__dot"></span>
+			<span>PERSONAL TERMINAL</span>
+			<span class="ak-hero__kicker-id">// 00</span>
+		</div>
+		<h1 class="ak-hero__title">{title}</h1>
+		<p class="ak-hero__subtitle">{subtitle}</p>
+	</div>
+
+	<div class="ak-hero__bottom">
+		<div class="ak-hero__divider"><span></span></div>
+		<ul class="ak-hero__meta">
+			<li>
+				<span class="ak-hero__meta-label">文章</span>
+				<span class="ak-hero__meta-value">{pad(postCount)}</span>
+			</li>
+			<li>
+				<span class="ak-hero__meta-label">标签</span>
+				<span class="ak-hero__meta-value">{pad(tagCount)}</span>
+			</li>
+			<li>
+				<span class="ak-hero__meta-label">分类</span>
+				<span class="ak-hero__meta-value">{pad(categoryCount)}</span>
+			</li>
+		</ul>
+		<span class="ak-hero__index">DATABASE / INDEX</span>
+	</div>
+</section>
+
+<style>
+	#ak-hero {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		min-height: 300px;
+		margin: 0 0 1.25rem;
+		padding: 2.5rem 2.25rem 1.75rem;
+		overflow: hidden;
+		background: linear-gradient(
+			155deg,
+			rgba(43, 179, 255, 0.1) 0%,
+			rgba(16, 19, 23, 0.9) 40%,
+			rgba(10, 12, 15, 0.95) 100%
+		);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.14),
+			inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+			0 26px 64px rgba(0, 0, 0, 0.55);
+		clip-path: polygon(
+			0 0,
+			calc(100% - 26px) 0,
+			100% 26px,
+			100% 100%,
+			0 100%
+		);
+	}
+
+	/* 柔光 */
+	#ak-hero::before {
+		content: "";
+		position: absolute;
+		top: -45%;
+		left: -15%;
+		width: 72%;
+		height: 115%;
+		pointer-events: none;
+		background: radial-gradient(
+			ellipse at 30% 30%,
+			rgba(43, 179, 255, 0.16),
+			transparent 64%
+		);
+	}
+
+	/* 底部强调线 */
+	#ak-hero::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		bottom: 0;
+		width: 68%;
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			rgba(43, 179, 255, 0.85),
+			rgba(43, 179, 255, 0.12) 70%,
+			transparent
+		);
+	}
+
+	.ak-hero__top,
+	.ak-hero__bottom {
+		position: relative;
+		z-index: 1;
+	}
+
+	.ak-hero__kicker {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.72rem;
+		letter-spacing: 0.34em;
+		color: #2bb3ff;
+	}
+
+	.ak-hero__dot {
+		width: 7px;
+		height: 7px;
+		background: #2bb3ff;
+		transform: rotate(45deg);
+		box-shadow: 0 0 10px rgba(43, 179, 255, 0.85);
+	}
+
+	.ak-hero__kicker-id {
+		margin-left: 0.35rem;
+		padding-left: 0.7rem;
+		border-left: 1px solid rgba(255, 255, 255, 0.18);
+		letter-spacing: 0.18em;
+		color: rgba(255, 255, 255, 0.32);
+	}
+
+	.ak-hero__title {
+		margin: 1.1rem 0 0.2rem;
+		font-family: var(--ak-mono, monospace);
+		font-size: clamp(2.5rem, 5vw, 4.6rem);
+		font-weight: 700;
+		line-height: 0.98;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		background: linear-gradient(180deg, #fff 18%, #d3ebf8 60%, #7db9d7 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		filter: drop-shadow(0 0 36px rgba(43, 179, 255, 0.32));
+	}
+
+	.ak-hero__subtitle {
+		margin: 0.55rem 0 0;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.82rem;
+		letter-spacing: 0.3em;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.ak-hero__divider {
+		position: relative;
+		height: 1px;
+		margin: 1.4rem 0 1.1rem;
+		background: linear-gradient(
+			90deg,
+			rgba(255, 255, 255, 0.28),
+			rgba(255, 255, 255, 0.04) 55%,
+			transparent
+		);
+	}
+
+	.ak-hero__divider span {
+		position: absolute;
+		left: 0;
+		top: -2px;
+		width: 5px;
+		height: 5px;
+		background: #2bb3ff;
+		transform: rotate(45deg);
+		box-shadow: 0 0 12px rgba(43, 179, 255, 0.9);
+	}
+
+	.ak-hero__meta {
+		display: flex;
+		gap: 2.4rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.ak-hero__meta li {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.ak-hero__meta-label {
+		margin-bottom: 0.3rem;
+		font-size: 0.66rem;
+		letter-spacing: 0.3em;
+		color: rgba(255, 255, 255, 0.34);
+	}
+
+	.ak-hero__meta-value {
+		font-family: var(--ak-mono, monospace);
+		font-size: 1.6rem;
+		line-height: 1;
+		letter-spacing: 0.04em;
+		color: rgba(255, 255, 255, 0.95);
+	}
+
+	.ak-hero__index {
+		position: absolute;
+		right: 0.4rem;
+		bottom: 0.2rem;
+		font-family: var(--ak-mono, monospace);
+		font-size: 0.6rem;
+		letter-spacing: 0.3em;
+		color: rgba(255, 255, 255, 0.2);
+	}
+
+	.ak-hero__corner {
+		position: absolute;
+		width: 13px;
+		height: 13px;
+		opacity: 0.45;
+	}
+
+	.ak-hero__corner.tl {
+		top: 12px;
+		left: 12px;
+		border-top: 1px solid #2bb3ff;
+		border-left: 1px solid #2bb3ff;
+	}
+
+	.ak-hero__corner.tr {
+		top: 12px;
+		right: 34px;
+		border-top: 1px solid #2bb3ff;
+		border-right: 1px solid #2bb3ff;
+	}
+
+	.ak-hero__corner.bl {
+		bottom: 12px;
+		left: 12px;
+		border-bottom: 1px solid #2bb3ff;
+		border-left: 1px solid #2bb3ff;
+	}
+
+	.ak-hero__corner.br {
+		bottom: 12px;
+		right: 12px;
+		border-bottom: 1px solid #2bb3ff;
+		border-right: 1px solid #2bb3ff;
+	}
+
+	@media (max-width: 767px) {
+		#ak-hero {
+			min-height: 220px;
+			padding: 1.6rem 1.25rem 1.25rem;
+		}
+
+		.ak-hero__meta {
+			gap: 1.5rem;
+		}
+
+		.ak-hero__index {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.ak-hero__dot {
+			animation: none;
+		}
+	}
+</style>
